@@ -85,7 +85,7 @@ const initialState: AppState = {
     {
       id: "1",
       title: "English Grammar Mastery - Grade 2",
-      description: "Comprehensive English grammar book with interactive exercises and examples for Grade 5 students.",
+      description: "Comprehensive English grammar book with interactive exercises and examples for Grade 2 students.",
       price: 450,
       discount: 10,
       image: "/book2.png",
@@ -100,7 +100,7 @@ const initialState: AppState = {
       id: "2",
       title: "Mathematics Fundamentals - Grade 2",
       description:
-        "Complete mathematics textbook covering all essential topics for Grade 3 with colorful illustrations.",
+        "Complete mathematics textbook covering all essential topics for Grade 2 with colorful illustrations.",
       price: 380,
       image: "/book1.png",
       category: "Grade 2",

@@ -138,7 +138,7 @@ export default function HomePage() {
             <div className="relative">
               <div className="relative z-10">
                 <Image
-                  src="/hero.png"
+                  src="/placeholder.svg?height=500&width=600"
                   alt="Students learning with Homage Educational Publishers books"
                   width={600}
                   height={500}
@@ -235,13 +235,19 @@ export default function HomePage() {
               >
                 <CardContent className="p-0">
                   <div className="relative overflow-hidden">
-                    <Image
-                      src={product.image || "/placeholder.svg"}
-                      alt={product.title}
-                      width={300}
-                      height={400}
-                      className="w-full h-64 object-contain bg-white transition-transform duration-500 group-hover:scale-110"
-                    />
+                    <div className="aspect-[3/4] w-full bg-gray-50">
+                      <Image
+                        src={product.image || "/placeholder.svg"}
+                        alt={product.title}
+                        width={300}
+                        height={400}
+                        className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement
+                          target.src = "/placeholder.svg?height=400&width=300"
+                        }}
+                      />
+                    </div>
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
                     {product.discount && (

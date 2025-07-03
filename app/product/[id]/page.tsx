@@ -41,13 +41,20 @@ export default function ProductDetailPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
             {/* Product Image */}
             <div className="relative">
-              <Image
-                src={product.image || "/placeholder.svg"}
-                alt={product.title}
-                width={500}
-                height={600}
-                className="w-full h-auto rounded-lg"
-              />
+              <div className="aspect-[3/4] w-full overflow-hidden rounded-lg bg-gray-50">
+                <Image
+                  src={product.image || "/placeholder.svg"}
+                  alt={product.title}
+                  width={500}
+                  height={600}
+                  className="w-full h-full object-contain"
+                  priority
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement
+                    target.src = "/placeholder.svg?height=600&width=500"
+                  }}
+                />
+              </div>
               {product.discount && (
                 <Badge className="absolute top-4 right-4 bg-red-600 text-lg px-3 py-1">{product.discount}% OFF</Badge>
               )}

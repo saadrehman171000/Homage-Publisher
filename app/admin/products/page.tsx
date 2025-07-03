@@ -228,14 +228,20 @@ export default function AdminProductsPage() {
           {filteredProducts.map((product) => (
             <Card key={product.id} className="hover:shadow-lg transition-shadow">
               <CardContent className="p-0">
-                <div className="relative">
-                  <Image
-                    src={product.image || "/placeholder.svg"}
-                    alt={product.title}
-                    width={300}
-                    height={200}
-                    className="w-full h-48 object-cover rounded-t-lg"
-                  />
+                <div className="relative overflow-hidden">
+                  <div className="aspect-[3/4] w-full bg-gray-50">
+                    <Image
+                      src={product.image || "/placeholder.svg"}
+                      alt={product.title}
+                      width={300}
+                      height={400}
+                      className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement
+                        target.src = "/placeholder.svg?height=400&width=300"
+                      }}
+                    />
+                  </div>
                   <div className="absolute top-2 right-2 flex gap-2">
                     {product.isFeatured && <Badge className="bg-yellow-500">Featured</Badge>}
                     {product.isNewArrival && <Badge className="bg-green-500">New</Badge>}

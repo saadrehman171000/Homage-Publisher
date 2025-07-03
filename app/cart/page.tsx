@@ -57,13 +57,19 @@ export default function CartPage() {
               return (
                 <div key={item.product.id} className="bg-white rounded-lg shadow-sm p-6">
                   <div className="flex items-center space-x-4">
-                    <Image
-                      src={item.product.image || "/placeholder.svg"}
-                      alt={item.product.title}
-                      width={80}
-                      height={100}
-                      className="rounded-md"
-                    />
+                    <div className="aspect-[3/4] w-20 overflow-hidden rounded-md bg-gray-50">
+                      <Image
+                        src={item.product.image || "/placeholder.svg"}
+                        alt={item.product.title}
+                        width={80}
+                        height={100}
+                        className="w-full h-full object-contain"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement
+                          target.src = "/placeholder.svg?height=100&width=80"
+                        }}
+                      />
+                    </div>
 
                     <div className="flex-1">
                       <h3 className="font-semibold text-lg text-gray-900">{item.product.title}</h3>

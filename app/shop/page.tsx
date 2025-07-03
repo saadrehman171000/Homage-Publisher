@@ -16,7 +16,7 @@ export default function ShopPage() {
   const [sortBy, setSortBy] = useState("name")
 
   // Get unique classes and series for filters
-  const classes = ["all", ...Array.from(new Set(state.products.map((p) => p.class)))]
+  const classes = ["all", ...Array.from(new Set(state.products.map((p) => p.category)))]
   const series = ["all", ...Array.from(new Set(state.products.map((p) => p.series)))]
 
   // Filter and sort products
@@ -25,7 +25,7 @@ export default function ShopPage() {
       const matchesSearch =
         product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.description.toLowerCase().includes(searchTerm.toLowerCase())
-      const matchesClass = selectedClass === "all" || product.class === selectedClass
+      const matchesClass = selectedClass === "all" || product.category === selectedClass
       const matchesSeries = selectedSeries === "all" || product.series === selectedSeries
 
       return matchesSearch && matchesClass && matchesSeries
@@ -41,7 +41,7 @@ export default function ShopPage() {
         case "price-high":
           return b.price - a.price
         case "class":
-          return a.class.localeCompare(b.class)
+          return a.category.localeCompare(b.category)
         default:
           return 0
       }

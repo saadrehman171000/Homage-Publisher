@@ -285,13 +285,17 @@ export default function AddProductPage() {
               {formData.image && (
                 <div className="mt-4">
                   <Label>Preview</Label>
-                  <div className="mt-2 w-32 h-40 border rounded-lg overflow-hidden">
+                  <div className="mt-2 w-32 h-40 border rounded-lg overflow-hidden bg-gray-50">
                     <Image
                       src={formData.image || "/placeholder.svg"}
                       alt="Product preview"
                       width={128}
                       height={160}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement
+                        target.src = "/placeholder.svg?height=160&width=128"
+                      }}
                     />
                   </div>
                 </div>
