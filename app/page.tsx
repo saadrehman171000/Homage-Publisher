@@ -138,7 +138,7 @@ export default function HomePage() {
             <div className="relative">
               <div className="relative z-10">
                 <Image
-                  src="/placeholder.svg?height=500&width=600"
+                  src="/hero.png"
                   alt="Students learning with Homage Educational Publishers books"
                   width={600}
                   height={500}
