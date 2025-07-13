@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useApp } from "@/contexts/app-context"
@@ -32,15 +32,37 @@ export default function AdminDashboardPage() {
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
   const [orderFilter, setOrderFilter] = useState("all")
+  const [products, setProducts] = useState([])
+  const [loadingProducts, setLoadingProducts] = useState(true)
 
-  // Check if user is admin
+  useEffect(() => {
+    if (!state.user || !state.user.isAdmin) {
+      router.push("/admin/login")
+    }
+  }, [state.user, router])
+
+  useEffect(() => {
+    async function fetchProducts() {
+      setLoadingProducts(true)
+      try {
+        const res = await fetch("/api/products")
+        const data = await res.json()
+        setProducts(data)
+      } catch (error) {
+        setProducts([])
+      } finally {
+        setLoadingProducts(false)
+      }
+    }
+    fetchProducts()
+  }, [])
+
   if (!state.user || !state.user.isAdmin) {
-    router.push("/admin/login")
     return null
   }
 
   // Calculate statistics
-  const totalProducts = state.products.length
+  const totalProducts = products.length
   const totalOrders = state.orders?.length || 0
   const totalRevenue = state.orders?.reduce((sum, order) => sum + order.total, 0) || 0
   const pendingOrders = state.orders?.filter((order) => order.status === "placed").length || 0
@@ -58,8 +80,8 @@ export default function AdminDashboardPage() {
 
   const recentOrders = filteredOrders.slice(0, 10)
 
-  // Top selling products (mock data for demo)
-  const topProducts = state.products.slice(0, 5)
+  // Top selling products (use real data)
+  const topProducts: any[] = products.slice(0, 5)
 
   const handleUpdateOrderStatus = (orderId: string, status: any) => {
     dispatch({ type: "UPDATE_ORDER_STATUS", payload: { orderId, status } })
@@ -197,24 +219,6 @@ export default function AdminDashboardPage() {
                   <Link href="/admin/orders">
                     <ShoppingCart className="h-6 w-6 mb-2" />
                     View Orders
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" className="h-20 flex-col bg-transparent">
-                  <Link href="/admin/analytics">
-                    <BarChart3 className="h-6 w-6 mb-2" />
-                    Analytics
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" className="h-20 flex-col bg-transparent">
-                  <Link href="/admin/customers">
-                    <Users className="h-6 w-6 mb-2" />
-                    Customers
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" className="h-20 flex-col bg-transparent">
-                  <Link href="/admin/settings">
-                    <AlertCircle className="h-6 w-6 mb-2" />
-                    Settings
                   </Link>
                 </Button>
               </div>
@@ -390,25 +394,51 @@ export default function AdminDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {topProducts.map((product, index) => (
-                <div key={product.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                      <span className="text-sm font-bold text-red-600">#{index + 1}</span>
+              {topProducts.map((product, index) => {
+                const hasDiscount = product.discount && product.discount > 0
+                const discountedPrice = hasDiscount
+                  ? Math.round(product.price * (1 - product.discount / 100))
+                  : product.price
+                return (
+                  <div key={product.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-bold text-red-600">#{index + 1}</span>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900">{product.title}</h4>
+                        <p className="text-sm text-gray-500">
+                          {product.category} • {product.series}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          {hasDiscount && (
+                            <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                              {product.discount}% OFF
+                            </span>
+                          )}
+                          {product.rating ? (
+                            <span className="ml-2 text-yellow-500 font-semibold flex items-center">
+                              <Star className="h-4 w-4 mr-1" />
+                              {product.rating.toFixed(1)}
+                            </span>
+                          ) : (
+                            <span className="ml-2 text-xs text-gray-400">No rating</span>
+                          )}
+                          {product.reviews !== undefined && (
+                            <span className="ml-2 text-xs text-gray-500">({product.reviews} reviews)</span>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-medium text-gray-900">{product.title}</h4>
-                      <p className="text-sm text-gray-500">
-                        {product.category} • {product.series}
-                      </p>
+                    <div className="text-right">
+                      <p className="font-semibold text-red-600 text-lg">Rs. {discountedPrice}</p>
+                      {hasDiscount && (
+                        <p className="text-sm text-gray-400 line-through">Rs. {product.price}</p>
+                      )}
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-gray-900">Rs. {product.price}</p>
-                    <p className="text-sm text-gray-500">50+ sold</p>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </CardContent>
         </Card>

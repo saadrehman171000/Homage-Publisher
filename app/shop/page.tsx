@@ -1,27 +1,44 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ProductCard } from "@/components/ui/product-card"
-import { useApp } from "@/contexts/app-context"
 
 export default function ShopPage() {
-  const { state } = useApp()
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedClass, setSelectedClass] = useState("all")
   const [selectedSeries, setSelectedSeries] = useState("all")
   const [sortBy, setSortBy] = useState("name")
 
+  useEffect(() => {
+    async function fetchProducts() {
+      setLoading(true)
+      try {
+        const res = await fetch("/api/products")
+        const data = await res.json()
+        const normalized = data.map((p: any) => ({ ...p, image: p.imageUrl || p.image || "" }))
+        setProducts(normalized)
+      } catch (error) {
+        setProducts([])
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchProducts()
+  }, [])
+
   // Get unique classes and series for filters
-  const classes = ["all", ...Array.from(new Set(state.products.map((p) => p.category)))]
-  const series = ["all", ...Array.from(new Set(state.products.map((p) => p.series)))]
+  const classes = ["all", ...Array.from(new Set(products.map((p: any) => p.category)))]
+  const series = ["all", ...Array.from(new Set(products.map((p: any) => p.series)))]
 
   // Filter and sort products
   const filteredProducts = useMemo(() => {
-    const filtered = state.products.filter((product) => {
+    const filtered = products.filter((product: any) => {
       const matchesSearch =
         product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.description.toLowerCase().includes(searchTerm.toLowerCase())
@@ -32,7 +49,7 @@ export default function ShopPage() {
     })
 
     // Sort products
-    filtered.sort((a, b) => {
+    filtered.sort((a: any, b: any) => {
       switch (sortBy) {
         case "name":
           return a.title.localeCompare(b.title)
@@ -48,7 +65,7 @@ export default function ShopPage() {
     })
 
     return filtered
-  }, [state.products, searchTerm, selectedClass, selectedSeries, sortBy])
+  }, [products, searchTerm, selectedClass, selectedSeries, sortBy])
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -121,14 +138,16 @@ export default function ShopPage() {
         {/* Results */}
         <div className="mb-6">
           <p className="text-gray-600">
-            Showing {filteredProducts.length} of {state.products.length} books
+            Showing {filteredProducts.length} of {products.length} books
           </p>
         </div>
 
         {/* Products Grid */}
-        {filteredProducts.length > 0 ? (
+        {loading ? (
+          <div className="text-center py-12 text-gray-500">Loading books...</div>
+        ) : filteredProducts.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredProducts.map((product) => (
+            {filteredProducts.map((product: any) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>

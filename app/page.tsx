@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { useApp } from "@/contexts/app-context"
+import type { CartItem } from "@/contexts/app-context"
 import {
   Star,
   BookOpen,
@@ -23,6 +24,7 @@ import {
   Shield,
   Truck,
 } from "lucide-react"
+import { ProductCard } from "@/components/ui/product-card";
 
 /**
  * Enhanced Homepage Component
@@ -33,15 +35,24 @@ export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [email, setEmail] = useState("")
   const [isVisible, setIsVisible] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   // Get featured products and new arrivals
-  const featuredProducts = state.products.filter((product) => product.isFeatured)
-  const newArrivals = state.products.filter((product) => product.isNewArrival)
+  const normalizedProducts = state.products.map((p) => ({
+    ...p,
+    image: (typeof (p as any).imageUrl === "string" && (p as any).imageUrl) || p.image || ""
+  }))
+  const featuredProducts = normalizedProducts.filter((product) => product.isFeatured)
+  const newArrivals = normalizedProducts.filter((product) => product.isNewArrival)
   const recentAnnouncements = state.announcements.slice(0, 3)
 
   useEffect(() => {
     setIsVisible(true)
   }, [])
+
+  useEffect(() => {
+    setLoading(false)
+  }, [state.products])
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % newArrivals.length)
@@ -52,13 +63,34 @@ export default function HomePage() {
   }
 
   const handleAddToCart = (product: any) => {
-    dispatch({ type: "ADD_TO_CART", payload: product })
+    const cartItem: CartItem = {
+      id: `${product.id}-${Date.now()}`,
+      productId: product.id,
+      title: product.title,
+      price: product.discount 
+        ? product.price - (product.price * product.discount) / 100 
+        : product.price,
+      quantity: 1,
+      image: product.image,
+    }
+    dispatch({ type: "ADD_TO_CART", payload: cartItem })
   }
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     alert("Thank you for subscribing to our newsletter!")
     setEmail("")
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading products...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -229,80 +261,7 @@ export default function HomePage() {
           {/* Enhanced Product Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {newArrivals.slice(0, 4).map((product, index) => (
-              <Card
-                key={product.id}
-                className="group hover:shadow-2xl transition-all duration-500 hover:scale-105 border-0 overflow-hidden"
-              >
-                <CardContent className="p-0">
-                  <div className="relative overflow-hidden">
-                    <div className="aspect-[3/4] w-full bg-gray-50">
-                      <Image
-                        src={product.image || "/placeholder.svg"}
-                        alt={product.title}
-                        width={300}
-                        height={400}
-                        className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement
-                          target.src = "/placeholder.svg?height=400&width=300"
-                        }}
-                      />
-                    </div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-                    {product.discount && (
-                      <Badge className="absolute top-3 right-3 bg-red-600 text-white font-bold animate-pulse">
-                        {product.discount}% OFF
-                      </Badge>
-                    )}
-                    <Badge className="absolute top-3 left-3 bg-green-600 text-white font-bold">NEW</Badge>
-
-                    {/* Hover Overlay */}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <Button
-                        onClick={() => handleAddToCart(product)}
-                        className="bg-white text-gray-900 hover:bg-gray-100 font-bold transform scale-90 group-hover:scale-100 transition-transform duration-300"
-                      >
-                        <ShoppingCart className="w-4 h-4 mr-2" />
-                        Quick Add
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="p-6">
-                    <h3 className="font-bold text-lg mb-3 line-clamp-2 group-hover:text-red-600 transition-colors duration-300">
-                      {product.title}
-                    </h3>
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">{product.description}</p>
-
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-xl font-bold text-red-600">
-                          Rs.{" "}
-                          {product.discount
-                            ? (product.price - (product.price * product.discount) / 100).toFixed(0)
-                            : product.price.toFixed(0)}
-                        </span>
-                        {product.discount && (
-                          <span className="text-sm text-gray-500 line-through">Rs. {product.price.toFixed(0)}</span>
-                        )}
-                      </div>
-                      <div className="flex items-center">
-                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                        <span className="text-sm text-gray-600 ml-1">{product.rating}</span>
-                      </div>
-                    </div>
-
-                    <Button
-                      onClick={() => handleAddToCart(product)}
-                      className="w-full bg-red-600 hover:bg-red-700 font-bold transition-all duration-300 transform hover:scale-105"
-                    >
-                      <ShoppingCart className="w-4 h-4 mr-2" />
-                      Add to Cart
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <ProductCard key={product.id} product={product} showNewBadge />
             ))}
           </div>
         </div>

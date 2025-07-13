@@ -25,11 +25,11 @@ export function Footer() {
           <div className="col-span-1 lg:col-span-2">
             <div className="flex items-center mb-6">
               <Image
-                src="/images/homage-logo.png"
+                src="/images/homage-logo-01.png"
                 alt="Homage Educational Publishers"
-                width={180}
-                height={60}
-                className="h-12 w-auto brightness-0 invert"
+                width={260}
+                height={90}
+                className="h-20 w-auto"
               />
             </div>
             <p className="text-gray-300 mb-8 leading-relaxed text-lg">
@@ -145,7 +145,7 @@ export function Footer() {
               </div>
               <div>
                 <p className="text-gray-300 text-sm">Call Us</p>
-                <p className="text-white font-semibold text-lg">+92-21-1234-5678</p>
+                <p className="text-white font-semibold text-lg">+92-21-3277-8692</p>
               </div>
             </div>
 
@@ -155,7 +155,7 @@ export function Footer() {
               </div>
               <div>
                 <p className="text-gray-300 text-sm">Visit Us</p>
-                <p className="text-white font-semibold text-lg">Karachi, Pakistan</p>
+                <p className="text-white font-semibold text-lg">Office No. 7, Shan Plaza, Gawali Lane Number 2, New Urdu Bazar, Karachi, Pakistan</p>
               </div>
             </div>
           </div>
@@ -164,7 +164,7 @@ export function Footer() {
         {/* Enhanced Copyright */}
         <div className="border-t border-gray-700 mt-12 pt-8 text-center">
           <p className="text-gray-400 text-lg mb-2">
-            © 2024 Homage Educational Publishers (Pvt.) Limited. All rights reserved.
+            © 2025 Homage Educational Publishers (Pvt.) Limited. All rights reserved.
           </p>
           <p className="text-gray-500 flex items-center justify-center">
             Made with <Heart className="h-4 w-4 mx-2 text-red-500 animate-pulse" /> for Education

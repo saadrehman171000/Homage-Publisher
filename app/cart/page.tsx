@@ -18,11 +18,13 @@ export default function CartPage() {
   }
 
   const subtotal = state.cart.reduce((total, item) => {
-    const price = item.product.discount
-      ? item.product.price - (item.product.price * item.product.discount) / 100
-      : item.product.price
-    return total + price * item.quantity
-  }, 0)
+    const price = item.product && typeof item.product.discount !== 'undefined'
+      ? item.product.discount
+        ? item.product.price - (item.product.price * item.product.discount) / 100
+        : item.product.price
+      : 0;
+    return total + price * item.quantity;
+  }, 0);
 
   if (state.cart.length === 0) {
     return (

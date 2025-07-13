@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { ShoppingCart, User, Menu, X, ChevronDown, Bell, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useApp } from "@/contexts/app-context"
@@ -28,6 +28,7 @@ export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
+  const categoriesRef = useRef<HTMLDivElement>(null)
 
   const cartItemsCount = state.cart.reduce((total, item) => total + item.quantity, 0)
 
@@ -39,6 +40,23 @@ export function Navbar() {
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
+
+  // Handle click outside to close categories dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (categoriesRef.current && !categoriesRef.current.contains(event.target as Node)) {
+        setIsCategoriesOpen(false)
+      }
+    }
+
+    if (isCategoriesOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isCategoriesOpen])
 
   return (
     <nav
@@ -81,7 +99,7 @@ export function Navbar() {
             </Link>
 
             {/* Enhanced Categories Dropdown */}
-            <div className="relative">
+            <div className="relative" ref={categoriesRef}>
               <button
                 onClick={() => setIsCategoriesOpen(!isCategoriesOpen)}
                 className="flex items-center text-gray-700 hover:text-red-600 font-semibold transition-all duration-300 group"
@@ -162,7 +180,7 @@ export function Navbar() {
             <div className="hidden sm:block">
               {state.user ? (
                 <Link
-                  href="/account"
+                  href="/admin/dashboard"
                   className="flex items-center text-gray-700 hover:text-red-600 transition-all duration-300 p-2 rounded-lg hover:bg-red-50"
                 >
                   <User className="h-5 w-5 mr-1" />
@@ -170,7 +188,7 @@ export function Navbar() {
                 </Link>
               ) : (
                 <Link
-                  href="/login"
+                  href="/sign-in"
                   className="flex items-center text-gray-700 hover:text-red-600 transition-all duration-300 p-2 rounded-lg hover:bg-red-50"
                 >
                   <User className="h-5 w-5 mr-1" />
@@ -290,15 +308,15 @@ export function Navbar() {
               <div className="border-t border-gray-200 pt-2">
                 {state.user ? (
                   <Link
-                    href="/account"
+                    href="/admin/dashboard"
                     className="block px-4 py-3 text-gray-700 hover:text-red-600 hover:bg-red-50 font-medium rounded-lg transition-all duration-200"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    My Account
+                    Admin Dashboard
                   </Link>
                 ) : (
                   <Link
-                    href="/login"
+                    href="/sign-in"
                     className="block px-4 py-3 text-gray-700 hover:text-red-600 hover:bg-red-50 font-medium rounded-lg transition-all duration-200"
                     onClick={() => setIsMenuOpen(false)}
                   >

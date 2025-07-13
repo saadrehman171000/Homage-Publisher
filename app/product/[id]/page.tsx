@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -12,8 +12,32 @@ export default function ProductDetailPage() {
   const params = useParams()
   const { state, dispatch } = useApp()
   const [quantity, setQuantity] = useState(1)
+  const [product, setProduct] = useState(() => state.products.find((p) => p.id === params.id))
+  const [loading, setLoading] = useState(!product)
 
-  const product = state.products.find((p) => p.id === params.id)
+  useEffect(() => {
+    if (!product) {
+      setLoading(true)
+      fetch(`/api/products/${params.id}`)
+        .then((res) => res.json())
+        .then((data) => {
+          setProduct({ ...data, image: data.imageUrl || data.image || "" })
+        })
+        .catch(() => setProduct(undefined))
+        .finally(() => setLoading(false))
+    }
+  }, [params.id])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading product...</p>
+        </div>
+      </div>
+    )
+  }
 
   if (!product) {
     return (
@@ -41,17 +65,17 @@ export default function ProductDetailPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
             {/* Product Image */}
             <div className="relative">
-              <div className="aspect-[3/4] w-full overflow-hidden rounded-lg bg-gray-50">
+              <div className="w-full overflow-hidden rounded-lg bg-gray-50 flex items-center justify-center">
                 <Image
                   src={product.image || "/placeholder.svg"}
                   alt={product.title}
-                  width={500}
+                  width={600}
                   height={600}
-                  className="w-full h-full object-contain"
+                  className="max-w-full max-h-[600px] object-contain"
                   priority
                   onError={(e) => {
                     const target = e.target as HTMLImageElement
-                    target.src = "/placeholder.svg?height=600&width=500"
+                    target.src = "/placeholder.svg?height=600&width=600"
                   }}
                 />
               </div>

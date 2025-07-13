@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -16,10 +16,11 @@ import { ArrowLeft, Save, Upload, Eye } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 
-export default function AddProductPage() {
+export default function EditProductPage({ params }: { params: { id: string } }) {
   const { state, dispatch } = useApp()
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [showCustomSeries, setShowCustomSeries] = useState(false)
   const [formData, setFormData] = useState({
     title: "",
@@ -62,6 +63,48 @@ export default function AddProductPage() {
     "Early Learning Series",
     "Other",
   ]
+
+  // Load product data
+  useEffect(() => {
+    async function loadProduct() {
+      try {
+        const response = await fetch(`/api/products/${params.id}`)
+        if (response.ok) {
+          const product = await response.json()
+          
+          // Check if series is custom (not in predefined options)
+          const isCustomSeries = !seriesOptions.includes(product.series)
+          
+          setFormData({
+            title: product.title || "",
+            description: product.description || "",
+            price: product.price?.toString() || "",
+            discount: product.discount?.toString() || "",
+            image: product.imageUrl || product.image || "",
+            category: product.category || "",
+            series: isCustomSeries ? "Other" : product.series || "",
+            customSeries: isCustomSeries ? product.series || "" : "",
+            isNewArrival: product.isNewArrival || false,
+            isFeatured: product.isFeatured || false,
+            rating: product.rating?.toString() || "",
+            reviews: product.reviews?.toString() || "",
+          })
+          
+          setShowCustomSeries(isCustomSeries)
+        } else {
+          console.error("Failed to load product")
+          router.push("/admin/products")
+        }
+      } catch (error) {
+        console.error("Error loading product:", error)
+        router.push("/admin/products")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadProduct()
+  }, [params.id, router])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({
@@ -114,9 +157,9 @@ export default function AddProductPage() {
     }
 
     try {
-      // Create new product via API
-      const response = await fetch("/api/products", {
-        method: "POST",
+      // Update product via API
+      const response = await fetch(`/api/products/${params.id}`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
@@ -137,20 +180,31 @@ export default function AddProductPage() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.error || "Failed to create product")
+        throw new Error(errorData.error || "Failed to update product")
       }
 
-      const newProduct = await response.json()
-      dispatch({ type: "ADD_PRODUCT", payload: newProduct })
+      const updatedProduct = await response.json()
+      dispatch({ type: "UPDATE_PRODUCT", payload: updatedProduct })
 
-      alert("Product created successfully!")
+      alert("Product updated successfully!")
       router.push("/admin/products")
     } catch (error) {
-      console.error("Error creating product:", error)
-      alert(`Failed to create product: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      console.error("Error updating product:", error)
+      alert(`Failed to update product: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading product...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -167,8 +221,8 @@ export default function AddProductPage() {
                 </Link>
               </Button>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Add New Product</h1>
-                <p className="text-gray-600 mt-1">Create a new product for your catalog</p>
+                <h1 className="text-3xl font-bold text-gray-900">Edit Product</h1>
+                <p className="text-gray-600 mt-1">Update product information</p>
               </div>
             </div>
             <div className="flex gap-3">
@@ -178,7 +232,7 @@ export default function AddProductPage() {
               </Button>
               <Button form="product-form" type="submit" disabled={isSubmitting} className="bg-red-600 hover:bg-red-700">
                 <Save className="h-4 w-4 mr-2" />
-                {isSubmitting ? "Saving..." : "Save Product"}
+                {isSubmitting ? "Saving..." : "Update Product"}
               </Button>
             </div>
           </div>
@@ -425,4 +479,4 @@ export default function AddProductPage() {
       </div>
     </div>
   )
-}
+} 

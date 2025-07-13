@@ -1,17 +1,33 @@
 "use client"
-import { ProductCard } from "@/components/ui/product-card"
-import { useApp } from "@/contexts/app-context"
+import { useEffect, useState } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import Image from "next/image"
+import { Star, Sparkles } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { Sparkles } from "lucide-react"
+import Link from "next/link";
+import { ProductCard } from "@/components/ui/product-card";
 
-/**
- * New Arrivals Page Component
- * Features: Display all new arrival products with filtering
- */
 export default function NewArrivalsPage() {
-  const { state } = useApp()
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const newArrivals = state.products.filter((product) => product.isNewArrival)
+  useEffect(() => {
+    async function fetchProducts() {
+      setLoading(true)
+      try {
+        const res = await fetch("/api/products")
+        const data = await res.json()
+        const normalized = data.map((p: any) => ({ ...p, image: p.imageUrl || p.image || "" }))
+        setProducts(normalized.filter((p: any) => p.isNewArrival))
+      } catch (error) {
+        setProducts([])
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchProducts()
+  }, [])
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -23,13 +39,15 @@ export default function NewArrivalsPage() {
           </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-4">New Arrivals</h1>
           <p className="text-xl text-gray-600">Discover our latest educational books and learning materials</p>
-          <Badge className="mt-4 bg-green-600">{newArrivals.length} New Books Available</Badge>
+          <Badge className="mt-4 bg-green-600">{products.length} New Books Available</Badge>
         </div>
 
         {/* Products Grid */}
-        {newArrivals.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {newArrivals.map((product) => (
+        {loading ? (
+          <div className="text-center py-12 text-gray-500">Loading new arrivals...</div>
+        ) : products.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+            {products.map((product: any) => (
               <ProductCard key={product.id} product={product} showNewBadge />
             ))}
           </div>

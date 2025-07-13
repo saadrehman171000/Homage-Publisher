@@ -2,8 +2,16 @@
 
 import type React from "react"
 import { createContext, useContext, useReducer, useEffect } from "react"
+import { useUser } from "@clerk/nextjs";
 
 // Types
+export interface User {
+  id: string
+  name: string
+  email: string
+  isAdmin: boolean
+}
+
 export interface Product {
   id: string
   title: string
@@ -20,8 +28,28 @@ export interface Product {
 }
 
 export interface CartItem {
-  product: Product
+  id: string
+  productId: string
+  title: string
+  price: number
   quantity: number
+  image: string
+}
+
+export interface Order {
+  id: string
+  items: CartItem[]
+  total: number
+  status: string
+  createdAt: string
+  shippingDetails: {
+    name: string
+    email: string
+    phone: string
+    address: string
+    city: string
+    postalCode: string
+  }
 }
 
 export interface Announcement {
@@ -32,263 +60,124 @@ export interface Announcement {
   isImportant?: boolean
 }
 
-export interface User {
-  id: string
-  name: string
-  email: string
-  isAdmin?: boolean
-}
-
-export interface Order {
-  id: string
-  userId: string
-  items: CartItem[]
-  total: number
-  status: "placed" | "packed" | "shipped" | "out-for-delivery" | "delivered"
-  shippingDetails: {
-    name: string
-    email: string
-    phone: string
-    address: string
-  }
-  paymentMethod: string
-  createdAt: string
-}
-
-interface AppState {
+export interface AppState {
   user: User | null
-  cart: CartItem[]
   products: Product[]
-  announcements: Announcement[]
+  cart: CartItem[]
   orders: Order[]
-  termsAccepted: boolean
+  announcements: Announcement[]
+  termsAccepted?: boolean
 }
 
 type AppAction =
   | { type: "SET_USER"; payload: User | null }
-  | { type: "ADD_TO_CART"; payload: Product }
-  | { type: "REMOVE_FROM_CART"; payload: string }
-  | { type: "UPDATE_CART_QUANTITY"; payload: { productId: string; quantity: number } }
-  | { type: "CLEAR_CART" }
-  | { type: "ACCEPT_TERMS" }
-  | { type: "ADD_ORDER"; payload: Order }
-  | { type: "LOAD_STATE"; payload: Partial<AppState> }
   | { type: "ADD_PRODUCT"; payload: Product }
-  | { type: "UPDATE_PRODUCT"; payload: Product }
   | { type: "DELETE_PRODUCT"; payload: string }
-  | { type: "UPDATE_ORDER_STATUS"; payload: { orderId: string; status: Order["status"] } }
+  | { type: "UPDATE_PRODUCT"; payload: Product }
+  | { type: "CLEAR_PRODUCTS" }
+  | { type: "ADD_TO_CART"; payload: CartItem }
+  | { type: "REMOVE_FROM_CART"; payload: string }
+  | { type: "UPDATE_CART_QUANTITY"; payload: { id: string; quantity: number } }
+  | { type: "CLEAR_CART" }
+  | { type: "ADD_ORDER"; payload: Order }
+  | { type: "UPDATE_ORDER_STATUS"; payload: { orderId: string; status: string } }
+  | { type: "ADD_ANNOUNCEMENT"; payload: Announcement }
+  | { type: "DELETE_ANNOUNCEMENT"; payload: string }
+  | { type: "UPDATE_ANNOUNCEMENT"; payload: Announcement }
+  | { type: "LOAD_STATE"; payload: Partial<AppState> }
+  | { type: "SET_TERMS_ACCEPTED"; payload: boolean }
 
 const initialState: AppState = {
   user: null,
   cart: [],
-  products: [
-    {
-      id: "1",
-      title: "English Grammar Mastery - Grade 2",
-      description: "Comprehensive English grammar book with interactive exercises and examples for Grade 2 students.",
-      price: 450,
-      discount: 10,
-      image: "/book2.png",
-      category: "Grade 2",
-      series: "English Series",
-      isNewArrival: true,
-      isFeatured: true,
-      rating: 4.8,
-      reviews: 124,
-    },
-    {
-      id: "2",
-      title: "Mathematics Fundamentals - Grade 2",
-      description:
-        "Complete mathematics textbook covering all essential topics for Grade 2 with colorful illustrations.",
-      price: 380,
-      image: "/book1.png",
-      category: "Grade 2",
-      series: "Math Series",
-      isNewArrival: true,
-      isFeatured: true,
-      rating: 4.6,
-      reviews: 89,
-    },
-    {
-      id: "3",
-      title: "Science Explorer - Grade 7",
-      description: "Interactive science book with experiments and practical activities for Grade 7 students.",
-      price: 520,
-      discount: 15,
-      image: "/book1.png",
-      category: "Grade 7",
-      series: "Science Series",
-      isFeatured: true,
-      rating: 4.9,
-      reviews: 156,
-    },
-    {
-      id: "4",
-      title: "Urdu Literature - Grade 6",
-      description: "Beautiful collection of Urdu literature and poetry for Grade 6 students with modern design.",
-      price: 420,
-      image: "/book3.png",
-      category: "Grade 6",
-      series: "Urdu Series",
-      isNewArrival: true,
-      rating: 4.7,
-      reviews: 78,
-    },
-    {
-      id: "5",
-      title: "Social Studies - Grade 4",
-      description: "Comprehensive social studies book covering history, geography, and civics for Grade 4.",
-      price: 390,
-      discount: 8,
-      image: "/book4.png",
-      category: "Grade 4",
-      series: "Social Studies Series",
-      isFeatured: true,
-      rating: 4.5,
-      reviews: 92,
-    },
-    {
-      id: "6",
-      title: "Pre-School Activity Book",
-      description: "Fun and educational activity book for pre-school children with colorful illustrations.",
-      price: 320,
-      image: "/book4.png",
-      category: "Pre-School",
-      series: "Early Learning Series",
-      isNewArrival: true,
-      rating: 4.8,
-      reviews: 203,
-    },
-    {
-      id: "7",
-      title: "Mathematics Advanced - Grade 2",
-      description: "Advanced mathematics concepts for Grade 2 students with fun activities and exercises.",
-      price: 350,
-      discount: 5,
-      image: "/book3.png",
-      category: "Grade 2",
-      series: "Math Series",
-      isFeatured: true,
-      rating: 4.7,
-      reviews: 67,
-    },
-    {
-      id: "8",
-      title: "English Reading - Grade 1",
-      description: "Beginner-friendly English reading book with phonics and vocabulary building exercises.",
-      price: 280,
-      image: "/book2.png",
-      category: "Grade 1",
-      series: "English Series",
-      isNewArrival: true,
-      rating: 4.9,
-      reviews: 145,
-    },
-  ],
+  orders: [],
   announcements: [
     {
       id: "1",
       title: "New Academic Year 2024-25 Books Available",
-      description:
-        "All new curriculum-aligned books for the academic year 2024-25 are now available. Get your copies with early bird discounts of up to 15% off on bulk orders!",
+      description: "We're excited to announce that our complete collection of books for the new academic year is now available. Get your textbooks early and enjoy special discounts.",
       date: "2024-01-15",
       isImportant: true,
     },
     {
       id: "2",
-      title: "Free Delivery on Orders Above Rs. 1000",
-      description:
-        "Enjoy free home delivery on all orders above Rs. 1000. Limited time offer valid till end of January. Shop now and save on delivery charges!",
+      title: "Free Shipping on Orders Above Rs. 1000",
+      description: "Enjoy free shipping on all orders above Rs. 1000. This offer is valid throughout Pakistan and applies to all educational materials.",
       date: "2024-01-10",
+      isImportant: false,
     },
     {
       id: "3",
-      title: "Winter Sale - Up to 25% Off",
-      description:
-        "Don't miss our winter sale! Get up to 25% discount on selected books. Perfect time to stock up for the new semester. Sale ends January 31st.",
+      title: "Teacher Resource Materials Now Available",
+      description: "We've added a comprehensive collection of teacher resource materials including lesson plans, activity sheets, and assessment tools.",
       date: "2024-01-05",
-    },
-    {
-      id: "4",
-      title: "New Science Lab Manuals Released",
-      description:
-        "Comprehensive science lab manuals for Grades 6-8 are now available. Includes step-by-step experiments, safety guidelines, and practical activities.",
-      date: "2023-12-28",
+      isImportant: false,
     },
   ],
-  orders: [],
-  termsAccepted: false,
+  products: [],
 }
+
+const ADMIN_EMAILS = [
+  "saadrehman1710000@gmail.com",
+  // Add more admin emails here as needed
+];
 
 function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
     case "SET_USER":
       return { ...state, user: action.payload }
 
-    case "ADD_TO_CART":
-      const existingItem = state.cart.find((item) => item.product.id === action.payload.id)
-      if (existingItem) {
-        return {
-          ...state,
-          cart: state.cart.map((item) =>
-            item.product.id === action.payload.id ? { ...item, quantity: item.quantity + 1 } : item,
-          ),
-        }
-      }
-      return {
-        ...state,
-        cart: [...state.cart, { product: action.payload, quantity: 1 }],
-      }
-
-    case "REMOVE_FROM_CART":
-      return {
-        ...state,
-        cart: state.cart.filter((item) => item.product.id !== action.payload),
-      }
-
-    case "UPDATE_CART_QUANTITY":
-      return {
-        ...state,
-        cart: state.cart
-          .map((item) =>
-            item.product.id === action.payload.productId ? { ...item, quantity: action.payload.quantity } : item,
-          )
-          .filter((item) => item.quantity > 0),
-      }
-
-    case "CLEAR_CART":
-      return { ...state, cart: [] }
-
-    case "ACCEPT_TERMS":
-      return { ...state, termsAccepted: true }
-
-    case "ADD_ORDER":
-      return {
-        ...state,
-        orders: [...state.orders, action.payload],
-      }
-
-    case "LOAD_STATE":
-      return { ...state, ...action.payload }
-
     case "ADD_PRODUCT":
+      return { ...state, products: [...state.products, action.payload] }
+
+    case "DELETE_PRODUCT":
       return {
         ...state,
-        products: [...state.products, action.payload],
+        products: state.products.filter((p) => p.id !== action.payload),
       }
 
     case "UPDATE_PRODUCT":
       return {
         ...state,
-        products: state.products.map((product) => (product.id === action.payload.id ? action.payload : product)),
+        products: state.products.map((p) => (p.id === action.payload.id ? action.payload : p)),
       }
 
-    case "DELETE_PRODUCT":
+    case "CLEAR_PRODUCTS":
+      return { ...state, products: [] }
+
+    case "ADD_TO_CART":
+      const existingItem = state.cart.find((item) => item.productId === action.payload.productId)
+      if (existingItem) {
+        return {
+          ...state,
+          cart: state.cart.map((item) =>
+            item.productId === action.payload.productId
+              ? { ...item, quantity: item.quantity + action.payload.quantity }
+              : item,
+          ),
+        }
+      }
+      return { ...state, cart: [...state.cart, action.payload] }
+
+    case "REMOVE_FROM_CART":
       return {
         ...state,
-        products: state.products.filter((product) => product.id !== action.payload),
+        cart: state.cart.filter((item) => item.id !== action.payload),
       }
+
+    case "UPDATE_CART_QUANTITY":
+      return {
+        ...state,
+        cart: state.cart.map((item) =>
+          item.id === action.payload.id ? { ...item, quantity: action.payload.quantity } : item,
+        ),
+      }
+
+    case "CLEAR_CART":
+      return { ...state, cart: [] }
+
+    case "ADD_ORDER":
+      return { ...state, orders: [...state.orders, action.payload] }
 
     case "UPDATE_ORDER_STATUS":
       return {
@@ -297,6 +186,29 @@ function appReducer(state: AppState, action: AppAction): AppState {
           order.id === action.payload.orderId ? { ...order, status: action.payload.status } : order,
         ),
       }
+
+    case "ADD_ANNOUNCEMENT":
+      return { ...state, announcements: [...state.announcements, action.payload] }
+
+    case "DELETE_ANNOUNCEMENT":
+      return {
+        ...state,
+        announcements: state.announcements.filter((a) => a.id !== action.payload),
+      }
+
+    case "UPDATE_ANNOUNCEMENT":
+      return {
+        ...state,
+        announcements: state.announcements.map((a) =>
+          a.id === action.payload.id ? { ...a, ...action.payload } : a
+        ),
+      }
+
+    case "LOAD_STATE":
+      return { ...state, ...action.payload }
+
+    case "SET_TERMS_ACCEPTED":
+      return { ...state, termsAccepted: action.payload }
 
     default:
       return state
@@ -310,31 +222,56 @@ const AppContext = createContext<{
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, initialState)
+  const { user, isLoaded } = useUser();
 
-  // Load state from localStorage on mount
+  // Always fetch latest products from API on mount
   useEffect(() => {
-    const savedState = localStorage.getItem("homage-publishers-state")
-    if (savedState) {
+    async function fetchProducts() {
       try {
-        const parsedState = JSON.parse(savedState)
-        dispatch({ type: "LOAD_STATE", payload: parsedState })
+        const res = await fetch("/api/products");
+        const data = await res.json();
+        const normalized = data.map((p: any) => ({ ...p, image: p.imageUrl || p.image || "" }));
+        dispatch({ type: "CLEAR_PRODUCTS" });
+        normalized.forEach((product: any) => {
+          dispatch({ type: "ADD_PRODUCT", payload: product });
+        });
       } catch (error) {
-        console.error("Error loading saved state:", error)
+        // Optionally handle error
       }
     }
-  }, [])
+    fetchProducts();
+  }, []);
 
-  // Save state to localStorage whenever it changes
+  // Sync Clerk user with app context
+  useEffect(() => {
+    if (isLoaded && user) {
+      dispatch({
+        type: "SET_USER",
+        payload: {
+          id: user.id,
+          name: user.fullName || user.username || user.id,
+          email: user.primaryEmailAddress?.emailAddress || "",
+          isAdmin: ADMIN_EMAILS.includes(user.primaryEmailAddress?.emailAddress || ""),
+        },
+      });
+    } else if (isLoaded && !user) {
+      dispatch({ type: "SET_USER", payload: null });
+    }
+  }, [user, isLoaded]);
+
+  // Remove products from localStorage persistence
   useEffect(() => {
     localStorage.setItem(
       "homage-publishers-state",
       JSON.stringify({
         user: state.user,
         cart: state.cart,
+        orders: state.orders,
+        announcements: state.announcements,
         termsAccepted: state.termsAccepted,
       }),
-    )
-  }, [state])
+    );
+  }, [state.user, state.cart, state.orders, state.announcements, state.termsAccepted]);
 
   return <AppContext.Provider value={{ state, dispatch }}>{children}</AppContext.Provider>
 }

@@ -72,8 +72,8 @@ export default function ContactPage() {
                 <Phone className="h-6 w-6 text-red-600 mt-1 mr-4" />
                 <div>
                   <h3 className="font-semibold text-gray-900">Phone</h3>
-                  <p className="text-gray-600">+92-21-1234-5678</p>
-                  <p className="text-gray-600">+92-300-1234567</p>
+                  <p className="text-gray-600">+92-21-3277-8692</p>
+                  <p className="text-gray-600">+92-314-2353805</p>
                 </div>
               </div>
 
@@ -82,10 +82,9 @@ export default function ContactPage() {
                 <div>
                   <h3 className="font-semibold text-gray-900">Address</h3>
                   <p className="text-gray-600">
-                    Homage Educational Publishers
-                    <br />
-                    123 Education Street
-                    <br />
+                    Office No. 7, Shan Plaza,<br />
+                    Gawali Lane Number 2,<br />
+                    New Urdu Bazar,<br />
                     Karachi, Pakistan
                   </p>
                 </div>
@@ -95,16 +94,25 @@ export default function ContactPage() {
                 <Clock className="h-6 w-6 text-red-600 mt-1 mr-4" />
                 <div>
                   <h3 className="font-semibold text-gray-900">Business Hours</h3>
-                  <p className="text-gray-600">Monday - Friday: 9:00 AM - 6:00 PM</p>
-                  <p className="text-gray-600">Saturday: 9:00 AM - 2:00 PM</p>
+                  <p className="text-gray-600">Monday - Saturday: 9:00 AM - 8:00 PM</p>
+                
                   <p className="text-gray-600">Sunday: Closed</p>
                 </div>
               </div>
             </div>
 
             {/* Map Placeholder */}
-            <div className="bg-gray-200 rounded-lg h-64 flex items-center justify-center">
-              <p className="text-gray-500">Interactive Map Coming Soon</p>
+            <div className="rounded-lg overflow-hidden h-64 w-full">
+              <iframe
+                title="Homage Educational Publishers Map"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d14474.96496402413!2d67.016322!3d24.8590953!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3eb33f5831f034cd%3A0xed1f890b025811cd!2sHomage%20Educational%20Publishers%20(Pvt.)%20Limited!5e0!3m2!1sen!2s!4v1688571234567!5m2!1sen!2s"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen={true}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              ></iframe>
             </div>
           </div>
 
