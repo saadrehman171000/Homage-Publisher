@@ -400,16 +400,16 @@ export default function AdminDashboardPage() {
                   ? Math.round(product.price * (1 - product.discount / 100))
                   : product.price
                 return (
-                  <div key={product.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-bold text-red-600">#{index + 1}</span>
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-gray-900">{product.title}</h4>
-                        <p className="text-sm text-gray-500">
-                          {product.category} • {product.series}
-                        </p>
+                <div key={product.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                      <span className="text-sm font-bold text-red-600">#{index + 1}</span>
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-900">{product.title}</h4>
+                      <p className="text-sm text-gray-500">
+                        {product.category} • {product.series}
+                      </p>
                         <div className="flex items-center gap-2 mt-1">
                           {hasDiscount && (
                             <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">

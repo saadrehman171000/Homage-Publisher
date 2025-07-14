@@ -49,11 +49,11 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <ClerkProvider>
-          <AppProvider>
-            <Navbar />
-            <main>{children}</main>
-            <Footer />
-          </AppProvider>
+        <AppProvider>
+          <Navbar />
+          <main>{children}</main>
+          <Footer />
+        </AppProvider>
         </ClerkProvider>
       </body>
     </html>

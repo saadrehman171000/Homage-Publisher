@@ -27,6 +27,7 @@ export function Navbar() {
   const { state } = useApp()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false)
+  const [isMobileCategoriesOpen, setIsMobileCategoriesOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const categoriesRef = useRef<HTMLDivElement>(null)
 
@@ -245,15 +246,15 @@ export function Navbar() {
               {/* Mobile Categories */}
               <div className="px-4 py-2">
                 <button
-                  onClick={() => setIsCategoriesOpen(!isCategoriesOpen)}
+                  onClick={() => setIsMobileCategoriesOpen(!isMobileCategoriesOpen)}
                   className="flex items-center text-gray-700 hover:text-red-600 font-medium w-full py-2 transition-colors duration-200"
                 >
                   Categories
                   <ChevronDown
-                    className={`ml-1 h-4 w-4 transition-transform duration-300 ${isCategoriesOpen ? "rotate-180" : ""}`}
+                    className={`ml-1 h-4 w-4 transition-transform duration-300 ${isMobileCategoriesOpen ? "rotate-180" : ""}`}
                   />
                 </button>
-                {isCategoriesOpen && (
+                {isMobileCategoriesOpen && (
                   <div className="mt-2 pl-4 space-y-1 animate-in slide-in-from-top duration-200">
                     {categories.map((category) => (
                       <Link
@@ -261,8 +262,10 @@ export function Navbar() {
                         href={`/category/${category.toLowerCase().replace(" ", "-")}`}
                         className="block py-2 px-3 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-md transition-all duration-200"
                         onClick={() => {
-                          setIsMenuOpen(false)
-                          setIsCategoriesOpen(false)
+                          setTimeout(() => {
+                            setIsMenuOpen(false)
+                            setIsMobileCategoriesOpen(false)
+                          }, 100)
                         }}
                       >
                         {category}

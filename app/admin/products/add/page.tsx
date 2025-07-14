@@ -79,10 +79,10 @@ export default function AddProductPage() {
         customSeries: value === "Other" ? formData.customSeries : "",
       })
     } else {
-      setFormData({
-        ...formData,
-        [name]: value,
-      })
+    setFormData({
+      ...formData,
+      [name]: value,
+    })
     }
   }
 
@@ -121,16 +121,16 @@ export default function AddProductPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          title: formData.title,
-          description: formData.description,
-          price: Number.parseFloat(formData.price),
+      title: formData.title,
+      description: formData.description,
+      price: Number.parseFloat(formData.price),
           discount: formData.discount ? Number.parseInt(formData.discount) : 0,
-          image: formData.image || "/placeholder.svg?height=300&width=200",
-          category: formData.category,
+      image: formData.image || "/placeholder.svg?height=300&width=200",
+      category: formData.category,
           series: finalSeries,
-          isNewArrival: formData.isNewArrival,
-          isFeatured: formData.isFeatured,
-          rating: formData.rating ? Number.parseFloat(formData.rating) : undefined,
+      isNewArrival: formData.isNewArrival,
+      isFeatured: formData.isFeatured,
+      rating: formData.rating ? Number.parseFloat(formData.rating) : undefined,
           reviews: formData.reviews ? Number.parseInt(formData.reviews) : 0,
         }),
       })
@@ -141,7 +141,7 @@ export default function AddProductPage() {
       }
 
       const newProduct = await response.json()
-      dispatch({ type: "ADD_PRODUCT", payload: newProduct })
+    dispatch({ type: "ADD_PRODUCT", payload: newProduct })
 
       alert("Product created successfully!")
       router.push("/admin/products")
@@ -149,7 +149,7 @@ export default function AddProductPage() {
       console.error("Error creating product:", error)
       alert(`Failed to create product: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
-      setIsSubmitting(false)
+    setIsSubmitting(false)
     }
   }
 

@@ -42,7 +42,7 @@ export default function CategoryPage() {
         setProducts([])
       } finally {
         setLoading(false)
-      }
+    }
     }
     fetchProducts()
   }, [categoryName])
@@ -60,11 +60,11 @@ export default function CategoryPage() {
             <div className="text-center py-12 text-gray-500 col-span-full">No books found for this category.</div>
           ) : (
             filteredProducts.map((product: any) => (
-              <ProductCard key={product.id} product={product} />
+                    <ProductCard key={product.id} product={product} />
             ))
           )}
-        </div>
-      )}
+          </div>
+        )}
     </div>
   )
 }
