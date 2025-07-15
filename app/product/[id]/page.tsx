@@ -53,10 +53,24 @@ export default function ProductDetailPage() {
   const discountedPrice = product.discount ? product.price - (product.price * product.discount) / 100 : product.price
 
   const handleAddToCart = () => {
-    for (let i = 0; i < quantity; i++) {
-      dispatch({ type: "ADD_TO_CART", payload: product })
-    }
-  }
+    const cartItem = {
+      id: `${product.id}-${Date.now()}`,
+      productId: product.id,
+      title: product.title,
+      price: discountedPrice,
+      quantity,
+      image:
+        product.imageData !== undefined && product.imageData !== null
+          ? `/api/products/${product.id}/image`
+          : product.imageUrl || product.image || "/placeholder.svg",
+      discount: product.discount,
+    };
+    console.log("Adding to cart:", cartItem);
+    dispatch({
+      type: "ADD_TO_CART",
+      payload: cartItem,
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -67,7 +81,11 @@ export default function ProductDetailPage() {
             <div className="relative">
               <div className="w-full overflow-hidden rounded-lg bg-gray-50 flex items-center justify-center">
                 <Image
-                  src={product.image || "/placeholder.svg"}
+                  src={
+                    product.imageData !== undefined && product.imageData !== null
+                      ? `/api/products/${product.id}/image`
+                      : product.imageUrl || product.image || "/placeholder.svg"
+                  }
                   alt={product.title}
                   width={600}
                   height={600}

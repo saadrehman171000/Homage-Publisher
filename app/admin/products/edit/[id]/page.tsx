@@ -1,6 +1,6 @@
 "use client"
 
-import type React from "react"
+import React from "react"
 
 import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
@@ -15,8 +15,9 @@ import { useApp } from "@/contexts/app-context"
 import { ArrowLeft, Save, Upload, Eye } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import { use } from "react"
 
-export default function EditProductPage({ params }: { params: { id: string } }) {
+export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { state, dispatch } = useApp()
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -36,6 +37,8 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
     rating: "",
     reviews: "",
   })
+
+  const { id } = use(params)
 
   // Check if user is admin
   if (!state.user || !state.user.isAdmin) {
@@ -68,7 +71,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
   useEffect(() => {
     async function loadProduct() {
       try {
-        const response = await fetch(`/api/products/${params.id}`)
+        const response = await fetch(`/api/products/${id}`)
         if (response.ok) {
           const product = await response.json()
           
@@ -104,7 +107,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
     }
 
     loadProduct()
-  }, [params.id, router])
+  }, [id, router])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({
@@ -158,7 +161,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
 
     try {
       // Update product via API
-      const response = await fetch(`/api/products/${params.id}`, {
+      const response = await fetch(`/api/products/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -376,25 +379,6 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                   onChange={handleInputChange}
                   placeholder="Enter image URL for the title page"
                 />
-              </div>
-
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <p className="text-gray-600 mb-2">Drag and drop a title page image here, or click to select</p>
-                <p className="text-sm text-gray-500 mb-4">Only title page images are allowed. No product attachments.</p>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    // TODO: Implement file upload functionality
-                    alert("File upload functionality will be implemented soon. Please use the image URL field above.")
-                  }}
-                >
-                  Choose File
-                </Button>
               </div>
 
               {formData.image && (

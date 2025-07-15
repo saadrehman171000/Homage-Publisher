@@ -45,7 +45,11 @@ export function ProductCard({ product, showNewBadge = false }: ProductCardProps)
             {/* Perfect square image container */}
             <div className="aspect-square w-full bg-gradient-to-br from-gray-50 to-gray-100 relative overflow-hidden">
               <Image
-                src={product.image || "/placeholder.svg"}
+                src={
+                  product.imageData !== undefined && product.imageData !== null
+                    ? `/api/products/${product.id}/image`
+                    : product.imageUrl || product.image || "/placeholder.svg"
+                }
                 alt={product.title}
                 fill
                 className="object-cover transition-all duration-700 group-hover:scale-110"

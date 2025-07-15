@@ -34,6 +34,8 @@ export default function AdminDashboardPage() {
   const [orderFilter, setOrderFilter] = useState("all")
   const [products, setProducts] = useState([])
   const [loadingProducts, setLoadingProducts] = useState(true)
+  const [orders, setOrders] = useState([])
+  const [loadingOrders, setLoadingOrders] = useState(true)
 
   useEffect(() => {
     if (!state.user || !state.user.isAdmin) {
@@ -57,23 +59,39 @@ export default function AdminDashboardPage() {
     fetchProducts()
   }, [])
 
+  useEffect(() => {
+    async function fetchOrders() {
+      setLoadingOrders(true)
+      try {
+        const res = await fetch("/api/orders")
+        const data = await res.json()
+        setOrders(data)
+      } catch (err) {
+        setOrders([])
+      } finally {
+        setLoadingOrders(false)
+      }
+    }
+    fetchOrders()
+  }, [])
+
   if (!state.user || !state.user.isAdmin) {
     return null
   }
 
   // Calculate statistics
   const totalProducts = products.length
-  const totalOrders = state.orders?.length || 0
-  const totalRevenue = state.orders?.reduce((sum, order) => sum + order.total, 0) || 0
-  const pendingOrders = state.orders?.filter((order) => order.status === "placed").length || 0
-  const deliveredOrders = state.orders?.filter((order) => order.status === "delivered").length || 0
+  const totalOrders = orders.length
+  const totalRevenue = orders.reduce((sum, order) => sum + (order.total || 0), 0)
+  const pendingOrders = orders.filter((order) => order.status === "placed").length
+  const deliveredOrders = orders.filter((order) => order.status === "delivered").length
   const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0
 
   // Recent orders with filtering
   const filteredOrders =
-    state.orders?.filter((order) => {
+    orders.filter((order) => {
       const matchesSearch =
-        order.shippingDetails.name.toLowerCase().includes(searchTerm.toLowerCase()) || order.id.includes(searchTerm)
+        (order.shippingName || "").toLowerCase().includes(searchTerm.toLowerCase()) || order.id.includes(searchTerm)
       const matchesFilter = orderFilter === "all" || order.status === orderFilter
       return matchesSearch && matchesFilter
     }) || []
@@ -259,130 +277,6 @@ export default function AdminDashboardPage() {
             </CardContent>
           </Card>
         </div>
-
-        {/* Recent Orders */}
-        <Card className="mb-8">
-          <CardHeader>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <CardTitle className="flex items-center">
-                <ShoppingCart className="h-5 w-5 mr-2" />
-                Recent Orders
-              </CardTitle>
-              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <Input
-                    placeholder="Search orders..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 w-full sm:w-64"
-                  />
-                </div>
-                <Select value={orderFilter} onValueChange={setOrderFilter}>
-                  <SelectTrigger className="w-full sm:w-40">
-                    <SelectValue placeholder="Filter status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Orders</SelectItem>
-                    <SelectItem value="placed">Pending</SelectItem>
-                    <SelectItem value="packed">Packed</SelectItem>
-                    <SelectItem value="shipped">Shipped</SelectItem>
-                    <SelectItem value="delivered">Delivered</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {recentOrders.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Order ID
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Customer
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Items
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Total
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Date
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {recentOrders.map((order) => (
-                      <tr key={order.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          #{order.id.slice(-6)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">{order.shippingDetails.name}</div>
-                            <div className="text-sm text-gray-500">{order.shippingDetails.email}</div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {order.items.length} items
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          Rs. {order.total.toFixed(0)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <Select
-                            value={order.status}
-                            onValueChange={(value) => handleUpdateOrderStatus(order.id, value)}
-                          >
-                            <SelectTrigger className="w-32">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="placed">Pending</SelectItem>
-                              <SelectItem value="packed">Packed</SelectItem>
-                              <SelectItem value="shipped">Shipped</SelectItem>
-                              <SelectItem value="out-for-delivery">Out for Delivery</SelectItem>
-                              <SelectItem value="delivered">Delivered</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(order.createdAt).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <div className="flex space-x-2">
-                            <Button variant="ghost" size="sm">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <ShoppingCart className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-                <p className="text-gray-500">No orders found</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
 
         {/* Top Products */}
         <Card>

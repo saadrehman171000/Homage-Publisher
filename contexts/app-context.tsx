@@ -25,6 +25,8 @@ export interface Product {
   isFeatured?: boolean
   rating?: number
   reviews?: number
+  imageData?: any // allow blob/buffer
+  imageUrl?: string // allow backend endpoint or url
 }
 
 export interface CartItem {
@@ -78,7 +80,7 @@ type AppAction =
   | { type: "CLEAR_PRODUCTS" }
   | { type: "ADD_TO_CART"; payload: CartItem }
   | { type: "REMOVE_FROM_CART"; payload: string }
-  | { type: "UPDATE_CART_QUANTITY"; payload: { id: string; quantity: number } }
+  | { type: "UPDATE_CART_QUANTITY"; payload: { productId: string; quantity: number } }
   | { type: "CLEAR_CART" }
   | { type: "ADD_ORDER"; payload: Order }
   | { type: "UPDATE_ORDER_STATUS"; payload: { orderId: string; status: string } }
@@ -147,6 +149,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, products: [] }
 
     case "ADD_TO_CART":
+      console.log("Reducer ADD_TO_CART", action.payload, state.cart);
       const existingItem = state.cart.find((item) => item.productId === action.payload.productId)
       if (existingItem) {
         return {
@@ -170,7 +173,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         cart: state.cart.map((item) =>
-          item.id === action.payload.id ? { ...item, quantity: action.payload.quantity } : item,
+          item.productId === action.payload.productId ? { ...item, quantity: action.payload.quantity } : item,
         ),
       }
 
@@ -260,19 +263,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user, isLoaded]);
 
-  // Remove products from localStorage persistence
-  useEffect(() => {
-    localStorage.setItem(
-      "homage-publishers-state",
-      JSON.stringify({
-        user: state.user,
-        cart: state.cart,
-        orders: state.orders,
-        announcements: state.announcements,
-        termsAccepted: state.termsAccepted,
-      }),
-    );
-  }, [state.user, state.cart, state.orders, state.announcements, state.termsAccepted]);
+  // Removed localStorage persistence: all business data is managed by the backend (NeonDB/Prisma).
+  // Cart is managed in memory only. No localStorage is used for state persistence.
 
   return <AppContext.Provider value={{ state, dispatch }}>{children}</AppContext.Provider>
 }

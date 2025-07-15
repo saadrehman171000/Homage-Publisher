@@ -2,7 +2,7 @@
 
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { useApp } from "@/contexts/app-context"
+import { useEffect, useState } from "react"
 import { Bell, Calendar } from "lucide-react"
 
 /**
@@ -10,7 +10,15 @@ import { Bell, Calendar } from "lucide-react"
  * Features: List of all announcements with filtering and clean layout
  */
 export default function AnnouncementsPage() {
-  const { state } = useApp()
+  const [announcements, setAnnouncements] = useState([])
+  useEffect(() => {
+    async function fetchAnnouncements() {
+      const res = await fetch("/api/announcements")
+      const data = await res.json()
+      setAnnouncements(data)
+    }
+    fetchAnnouncements()
+  }, [])
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -26,7 +34,7 @@ export default function AnnouncementsPage() {
 
         {/* Announcements List */}
         <div className="space-y-6">
-          {state.announcements.map((announcement) => (
+          {announcements.map((announcement) => (
             <Card key={announcement.id} className="hover:shadow-lg transition-shadow">
               <CardContent className="p-8">
                 <div className="flex items-start justify-between mb-4">
@@ -52,7 +60,7 @@ export default function AnnouncementsPage() {
         </div>
 
         {/* Empty State */}
-        {state.announcements.length === 0 && (
+        {announcements.length === 0 && (
           <div className="text-center py-12">
             <Bell className="mx-auto h-12 w-12 text-gray-300 mb-4" />
             <p className="text-gray-500 text-lg">No announcements at the moment.</p>

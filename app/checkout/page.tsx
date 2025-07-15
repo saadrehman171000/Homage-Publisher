@@ -84,7 +84,7 @@ export default function CheckoutPage() {
       if (!res.ok) throw new Error('Order failed')
       const order = await res.json()
       dispatch({ type: 'CLEAR_CART' })
-      router.push(`/order-confirmation/${order.id}`)
+    router.push(`/order-confirmation/${order.id}`)
     } catch (err) {
       alert('Failed to place order. Please try again.')
     }

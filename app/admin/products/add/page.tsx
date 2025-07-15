@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -322,25 +322,6 @@ export default function AddProductPage() {
                   onChange={handleInputChange}
                   placeholder="Enter image URL for the title page"
                 />
-              </div>
-
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <p className="text-gray-600 mb-2">Drag and drop a title page image here, or click to select</p>
-                <p className="text-sm text-gray-500 mb-4">Only title page images are allowed. No product attachments.</p>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    // TODO: Implement file upload functionality
-                    alert("File upload functionality will be implemented soon. Please use the image URL field above.")
-                  }}
-                >
-                  Choose File
-                </Button>
               </div>
 
               {formData.image && (

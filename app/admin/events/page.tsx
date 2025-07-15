@@ -150,8 +150,8 @@ export default function AdminEventsPage() {
         const newEvent = await res.json()
         setEvents((prev) => [...prev, newEvent])
         toast({ title: "Event created!", description: `Event '${formData.title}' was created successfully.`, variant: "success" })
-        setIsCreateDialogOpen(false)
-        resetForm()
+    setIsCreateDialogOpen(false)
+    resetForm()
       } else {
         const err = await res.json()
         setError(err.error || "Failed to create event.")
@@ -198,11 +198,11 @@ export default function AdminEventsPage() {
       date: formData.date,
       time: formData.time,
       location: formData.location,
-      category: finalCategory,
+            category: finalCategory,
       featured: formData.featured,
       status: formData.status,
       image: imagePreview || editingEvent.image,
-    }
+          }
     try {
       const res = await fetch("/api/events", {
         method: "PATCH",
@@ -212,9 +212,9 @@ export default function AdminEventsPage() {
       if (res.ok) {
         const updatedEvent = await res.json()
         setEvents((prev) => prev.map((e) => (e.id === updatedEvent.id ? updatedEvent : e)))
-        setIsCreateDialogOpen(false)
-        setEditingEvent(null)
-        resetForm()
+    setIsCreateDialogOpen(false)
+    setEditingEvent(null)
+    resetForm()
       } else {
         const err = await res.json()
         setError(err.error || "Failed to update event.")

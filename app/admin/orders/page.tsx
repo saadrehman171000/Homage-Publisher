@@ -21,13 +21,13 @@ export default function AdminOrdersPage() {
     fetchOrders();
   }, []);
 
-  async function fetchOrders() {
-    setLoading(true);
-    const res = await fetch("/api/orders");
-    const data = await res.json();
-    setOrders(data);
-    setLoading(false);
-  }
+    async function fetchOrders() {
+      setLoading(true);
+      const res = await fetch("/api/orders");
+      const data = await res.json();
+      setOrders(data);
+      setLoading(false);
+    }
 
   async function updateStatus(orderId: string, status: string) {
     setUpdating(true);

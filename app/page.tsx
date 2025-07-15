@@ -66,7 +66,7 @@ export default function HomePage() {
         setFeaturedProducts([])
         setNewArrivals([])
       } finally {
-        setLoading(false)
+    setLoading(false)
       }
     }
     fetchProducts()

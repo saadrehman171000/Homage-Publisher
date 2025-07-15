@@ -1,18 +1,19 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useApp, Announcement } from "@/contexts/app-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Trash2, AlertCircle, Pencil } from "lucide-react"
+import { useUser } from "@clerk/nextjs"
 
 export default function AdminAnnouncementsPage() {
-  const { state, dispatch } = useApp()
   const router = useRouter()
+  const { user, isLoaded } = useUser();
+  const [announcements, setAnnouncements] = useState([])
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -20,11 +21,30 @@ export default function AdminAnnouncementsPage() {
   })
   const [isAdding, setIsAdding] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
 
   // Check if user is admin
-  if (!state.user || !state.user.isAdmin) {
-    router.push("/admin/login")
-    return null
+  if (!isLoaded) return null;
+  if (!user || !["saadrehman1710000@gmail.com"].includes(user.primaryEmailAddress?.emailAddress)) {
+    router.push("/admin/login");
+    return null;
+  }
+
+  useEffect(() => {
+    async function fetchAnnouncements() {
+      setLoading(true)
+      const res = await fetch("/api/announcements")
+      const data = await res.json()
+      setAnnouncements(data)
+      setLoading(false)
+    }
+    fetchAnnouncements()
+  }, [])
+
+  const refreshAnnouncements = async () => {
+    const res = await fetch("/api/announcements")
+    const data = await res.json()
+    setAnnouncements(data)
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -35,46 +55,58 @@ export default function AdminAnnouncementsPage() {
     setForm({ ...form, isImportant: e.target.checked })
   }
 
-  const handleAddAnnouncement = (e: React.FormEvent) => {
+  const handleAddAnnouncement = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.title || !form.description) return
-    const newAnnouncement: Announcement = {
-      id: Date.now().toString(),
-      title: form.title,
-      description: form.description,
-      date: new Date().toISOString(),
-      isImportant: form.isImportant,
-    }
-    dispatch({ type: "ADD_ANNOUNCEMENT", payload: newAnnouncement })
+    await fetch("/api/announcements", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: form.title,
+        description: form.description,
+        date: new Date().toISOString(),
+        isImportant: form.isImportant,
+      })
+    })
     setForm({ title: "", description: "", isImportant: false })
     setIsAdding(false)
+    refreshAnnouncements()
   }
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm("Delete this announcement?")) {
-      dispatch({ type: "DELETE_ANNOUNCEMENT", payload: id })
+      await fetch("/api/announcements", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id })
+      })
+      refreshAnnouncements()
     }
   }
 
-  const handleEdit = (a: Announcement) => {
+  const handleEdit = (a: any) => {
     setEditingId(a.id)
     setForm({ title: a.title, description: a.description, isImportant: !!a.isImportant })
     setIsAdding(false)
   }
 
-  const handleUpdateAnnouncement = (e: React.FormEvent) => {
+  const handleUpdateAnnouncement = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!editingId || !form.title || !form.description) return
-    const updated: Announcement = {
-      id: editingId,
-      title: form.title,
-      description: form.description,
-      date: new Date().toISOString(),
-      isImportant: form.isImportant,
-    }
-    dispatch({ type: "UPDATE_ANNOUNCEMENT", payload: updated })
+    await fetch("/api/announcements", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: editingId,
+        title: form.title,
+        description: form.description,
+        date: new Date().toISOString(),
+        isImportant: form.isImportant,
+      })
+    })
     setEditingId(null)
     setForm({ title: "", description: "", isImportant: false })
+    refreshAnnouncements()
   }
 
   const handleCancelEdit = () => {
@@ -187,14 +219,19 @@ export default function AdminAnnouncementsPage() {
             <CardTitle>All Announcements</CardTitle>
           </CardHeader>
           <CardContent>
-            {state.announcements.length === 0 ? (
+            {loading ? (
+              <div className="text-center py-8">
+                <AlertCircle className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+                <p className="text-gray-500">Loading announcements...</p>
+              </div>
+            ) : announcements.length === 0 ? (
               <div className="text-center py-8">
                 <AlertCircle className="mx-auto h-12 w-12 text-gray-300 mb-4" />
                 <p className="text-gray-500">No announcements found</p>
               </div>
             ) : (
               <div className="space-y-6">
-                {state.announcements.slice().reverse().map((a) => (
+                {announcements.slice().reverse().map((a) => (
                   <div key={a.id} className="flex flex-col md:flex-row md:items-center justify-between bg-gray-100 rounded-lg p-4">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
