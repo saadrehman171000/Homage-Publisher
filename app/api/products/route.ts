@@ -3,10 +3,16 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// GET all products
-export async function GET() {
+// GET all products (with optional limit)
+export async function GET(req: NextRequest) {
   try {
-    const products = await prisma.product.findMany();
+    const url = new URL(req.url);
+    const limitParam = url.searchParams.get('limit');
+    const limit = limitParam ? parseInt(limitParam, 10) : 12;
+    const products = await prisma.product.findMany({
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+    });
     return NextResponse.json(products);
   } catch (error) {
     console.error('Error fetching products:', error);

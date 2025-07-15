@@ -34,6 +34,7 @@ export interface CartItem {
   price: number
   quantity: number
   image: string
+  discount?: number
 }
 
 export interface Order {

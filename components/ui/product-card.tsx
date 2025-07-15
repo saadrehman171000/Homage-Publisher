@@ -23,12 +23,23 @@ export function ProductCard({ product, showNewBadge = false }: ProductCardProps)
   const discountedPrice = product.discount ? product.price - (product.price * product.discount) / 100 : product.price
 
   const handleAddToCart = () => {
-    dispatch({ type: "ADD_TO_CART", payload: product })
+    dispatch({
+      type: "ADD_TO_CART",
+      payload: {
+        id: product.id,
+        productId: product.id,
+        title: product.title,
+        price: product.discount ? product.price - (product.price * product.discount) / 100 : product.price,
+        quantity: 1,
+        image: product.image,
+      },
+    })
   }
 
   return (
     <Card className="group relative overflow-hidden bg-white border-0 shadow-md hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 rounded-2xl">
       <CardContent className="p-0">
+        {/* Only image is a link */}
         <Link href={`/product/${product.id}`}>
           <div className="relative overflow-hidden rounded-t-2xl">
             {/* Perfect square image container */}
@@ -114,7 +125,7 @@ export function ProductCard({ product, showNewBadge = false }: ProductCardProps)
             </div>
           )}
 
-          {/* Enhanced button */}
+          {/* Enhanced button - NOT inside any Link */}
           <Button
             onClick={handleAddToCart}
             className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] border-0"

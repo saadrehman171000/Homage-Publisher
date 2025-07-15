@@ -36,14 +36,14 @@ export default function HomePage() {
   const [email, setEmail] = useState("")
   const [isVisible, setIsVisible] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [featuredProducts, setFeaturedProducts] = useState([])
+  const [newArrivals, setNewArrivals] = useState([])
 
   // Get featured products and new arrivals
   const normalizedProducts = state.products.map((p) => ({
     ...p,
     image: (typeof (p as any).imageUrl === "string" && (p as any).imageUrl) || p.image || ""
   }))
-  const featuredProducts = normalizedProducts.filter((product) => product.isFeatured)
-  const newArrivals = normalizedProducts.filter((product) => product.isNewArrival)
   const recentAnnouncements = state.announcements.slice(0, 3)
 
   useEffect(() => {
@@ -51,8 +51,26 @@ export default function HomePage() {
   }, [])
 
   useEffect(() => {
-    setLoading(false)
-  }, [state.products])
+    async function fetchProducts() {
+      setLoading(true)
+      try {
+        // Fetch featured products
+        const featuredRes = await fetch("/api/products?limit=8")
+        const featuredData = await featuredRes.json()
+        setFeaturedProducts(featuredData.filter((p: any) => p.isFeatured))
+        // Fetch new arrivals
+        const newArrivalsRes = await fetch("/api/products?limit=8")
+        const newArrivalsData = await newArrivalsRes.json()
+        setNewArrivals(newArrivalsData.filter((p: any) => p.isNewArrival))
+      } catch {
+        setFeaturedProducts([])
+        setNewArrivals([])
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchProducts()
+  }, [])
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % newArrivals.length)

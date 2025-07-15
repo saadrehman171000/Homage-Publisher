@@ -4,13 +4,32 @@ import { useParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { CheckCircle, Package, Truck, MapPin } from "lucide-react"
-import { useApp } from "@/contexts/app-context"
+import { useEffect, useState } from "react"
 
 export default function OrderConfirmationPage() {
   const params = useParams()
-  const { state } = useApp()
+  const [order, setOrder] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
 
-  const order = state.orders.find((o) => o.id === params.id)
+  useEffect(() => {
+    async function fetchOrder() {
+      setLoading(true)
+      const res = await fetch(`/api/orders`)
+      const orders = await res.json()
+      const found = orders.find((o: any) => o.id === params.id)
+      setOrder(found || null)
+      setLoading(false)
+    }
+    if (params.id) fetchOrder()
+  }, [params.id])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">Loading...</div>
+      </div>
+    )
+  }
 
   if (!order) {
     return (
@@ -60,14 +79,11 @@ export default function OrderConfirmationPage() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-gray-900 mb-2">Payment Method</h3>
-                <p className="text-sm text-gray-600">{getPaymentMethodName(order.paymentMethod)}</p>
-              </div>
-
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-2">Shipping Address</h3>
-                <p className="text-sm text-gray-600">{order.shippingDetails.name}</p>
-                <p className="text-sm text-gray-600">{order.shippingDetails.address}</p>
+                <h3 className="font-semibold text-gray-900 mb-2">Shipping Info</h3>
+                <p className="text-sm text-gray-600">{order.shippingName}</p>
+                <p className="text-sm text-gray-600">{order.shippingEmail}</p>
+                <p className="text-sm text-gray-600">{order.shippingPhone}</p>
+                <p className="text-sm text-gray-600">{order.shippingAddress}, {order.shippingCity}, {order.shippingPostalCode}</p>
               </div>
 
               <div>
@@ -75,6 +91,20 @@ export default function OrderConfirmationPage() {
                 <p className="text-lg font-bold text-red-600">Rs. {order.total.toFixed(0)}</p>
               </div>
             </div>
+          </div>
+
+          <div className="space-y-4 mb-8">
+            <h3 className="text-lg font-semibold text-gray-900">Products</h3>
+            <ul className="mb-2 pl-4 list-disc text-left">
+              {order.items.map((item: any, idx: number) => (
+                <li key={idx}>
+                  {item.title} x {item.quantity} @ Rs. {item.price}
+                  {item.discount ? (
+                    <span className="ml-2 text-xs text-red-500">{item.discount}% OFF</span>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
           </div>
 
           <div className="space-y-4 mb-8">
@@ -99,9 +129,6 @@ export default function OrderConfirmationPage() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild variant="outline">
-              <Link href="/account">View Order Status</Link>
-            </Button>
             <Button asChild className="bg-red-600 hover:bg-red-700">
               <Link href="/shop">Continue Shopping</Link>
             </Button>

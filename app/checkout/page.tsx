@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -24,23 +24,22 @@ export default function CheckoutPage() {
     paymentMethod: "cod",
   })
 
-  // Redirect if not logged in
-  if (!state.user) {
-    router.push("/login?redirect=/checkout")
-    return null
-  }
-
   // Redirect if cart is empty
+  useEffect(() => {
+    if (state.cart.length === 0) {
+      router.push("/cart")
+    }
+  }, [state.cart.length, router])
+
   if (state.cart.length === 0) {
-    router.push("/cart")
     return null
   }
 
   const subtotal = state.cart.reduce((total, item) => {
-    const price = item.product.discount
-      ? item.product.price - (item.product.price * item.product.discount) / 100
-      : item.product.price
-    return total + price * item.quantity
+    const price = typeof item.discount === 'number'
+      ? item.price - (item.price * item.discount) / 100
+      : item.price;
+    return total + price * item.quantity;
   }, 0)
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,30 +49,45 @@ export default function CheckoutPage() {
     })
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const updateQuantity = (productId: string, quantity: number) => {
+    dispatch({ type: "UPDATE_CART_QUANTITY", payload: { id: productId, quantity } })
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Create order
-    const order = {
-      id: Date.now().toString(),
-      userId: state.user!.id,
-      items: [...state.cart],
+    // Prepare order data for backend
+    const orderData = {
+      items: state.cart.map((item) => ({
+        productId: item.productId,
+        title: item.title,
+        price: item.price,
+        discount: item.discount,
+        quantity: item.quantity,
+        image: item.image,
+      })),
       total: subtotal,
-      status: "placed" as const,
-      shippingDetails: {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        address: `${formData.address}, ${formData.city}, ${formData.postalCode}`,
-      },
-      paymentMethod: formData.paymentMethod,
-      createdAt: new Date().toISOString(),
+      shippingName: formData.name,
+      shippingEmail: formData.email,
+      shippingPhone: formData.phone,
+      shippingAddress: formData.address,
+      shippingCity: formData.city,
+      shippingPostalCode: formData.postalCode,
     }
 
-    dispatch({ type: "ADD_ORDER", payload: order })
-    dispatch({ type: "CLEAR_CART" })
-
-    router.push(`/order-confirmation/${order.id}`)
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData),
+      })
+      if (!res.ok) throw new Error('Order failed')
+      const order = await res.json()
+      dispatch({ type: 'CLEAR_CART' })
+      router.push(`/order-confirmation/${order.id}`)
+    } catch (err) {
+      alert('Failed to place order. Please try again.')
+    }
   }
 
   return (
@@ -173,15 +187,18 @@ export default function CheckoutPage() {
 
             <div className="space-y-4 mb-6">
               {state.cart.map((item) => {
-                const discountedPrice = item.product.discount
-                  ? item.product.price - (item.product.price * item.product.discount) / 100
-                  : item.product.price
-
+                const discountedPrice = typeof item.discount === 'number'
+                  ? item.price - (item.price * item.discount) / 100
+                  : item.price;
                 return (
-                  <div key={item.product.id} className="flex justify-between items-center">
+                  <div key={item.id} className="flex justify-between items-center">
                     <div>
-                      <p className="font-medium">{item.product.title}</p>
-                      <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                      <p className="font-medium">{item.title}</p>
+                      <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm" onClick={() => updateQuantity(item.productId, item.quantity - 1)}>-</Button>
+                        <span className="text-sm text-gray-600">Qty: {item.quantity}</span>
+                        <Button variant="outline" size="sm" onClick={() => updateQuantity(item.productId, item.quantity + 1)}>+</Button>
+                      </div>
                     </div>
                     <p className="font-medium">Rs. {(discountedPrice * item.quantity).toFixed(0)}</p>
                   </div>

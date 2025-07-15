@@ -1,9 +1,12 @@
 "use client"
 
+import type React from "react"
+import type { MouseEvent } from "react"
+
 import Link from "next/link"
 import Image from "next/image"
 import { useState, useEffect, useRef } from "react"
-import { ShoppingCart, User, Menu, X, ChevronDown, Bell, Search } from "lucide-react"
+import { ShoppingCart, User, Menu, X, ChevronDown, Bell, Search, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useApp } from "@/contexts/app-context"
 
@@ -21,7 +24,7 @@ const categories = [
 
 /**
  * Enhanced Navigation Header Component
- * Features: Beautiful logo, smooth animations, enhanced UX
+ * Features: Perfect alignment, proper spacing, professional layout
  */
 export function Navbar() {
   const { state } = useApp()
@@ -29,6 +32,7 @@ export function Navbar() {
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false)
   const [isMobileCategoriesOpen, setIsMobileCategoriesOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
+
   const categoriesRef = useRef<HTMLDivElement>(null)
 
   const cartItemsCount = state.cart.reduce((total, item) => total + item.quantity, 0)
@@ -42,7 +46,7 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
-  // Handle click outside to close categories dropdown
+  // Handle click outside to close dropdowns
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (categoriesRef.current && !categoriesRef.current.contains(event.target as Node)) {
@@ -51,13 +55,27 @@ export function Navbar() {
     }
 
     if (isCategoriesOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener("mousedown", handleClickOutside)
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener("mousedown", handleClickOutside)
     }
   }, [isCategoriesOpen])
+
+  const NavLink = ({
+    href,
+    children,
+    className = "",
+  }: { href: string; children: React.ReactNode; className?: string }) => (
+    <Link
+      href={href}
+      className={`relative text-gray-700 hover:text-red-600 font-medium transition-all duration-300 group whitespace-nowrap flex items-center h-full ${className}`}
+    >
+      {children}
+      <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 transition-all duration-300 group-hover:w-full"></span>
+    </Link>
+  )
 
   return (
     <nav
@@ -66,44 +84,33 @@ export function Navbar() {
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
-          {/* Logo Section */}
-          <Link href="/" className="flex items-center space-x-3 group">
-            <div className="relative overflow-hidden rounded-lg">
-              <Image
-                src="/images/homage-logo-02.png"
-                alt="Homage Educational Publishers - Quality Educational Books"
-                width={220}
-                height={80}
-                className="h-16 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
-                priority
-              />
-            </div>
-          </Link>
-
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-8">
-            <Link
-              href="/"
-              className="relative text-gray-700 hover:text-red-600 font-semibold transition-all duration-300 group"
-            >
-              Home
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 transition-all duration-300 group-hover:w-full"></span>
+        <div className="flex items-center justify-between h-16">
+          {/* Logo Section with proper spacing */}
+          <div className="flex-shrink-0 mr-8">
+            <Link href="/" className="flex items-center group">
+              <div className="relative overflow-hidden rounded-lg">
+                <Image
+                  src="/images/homage-logo-02.png"
+                  alt="Homage Educational Publishers"
+                  width={200}
+                  height={70}
+                  className="h-14 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                  priority
+                />
+              </div>
             </Link>
+          </div>
 
-            <Link
-              href="/shop"
-              className="relative text-gray-700 hover:text-red-600 font-semibold transition-all duration-300 group"
-            >
-              Shop
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 transition-all duration-300 group-hover:w-full"></span>
-            </Link>
+          {/* Desktop Navigation - Perfectly aligned */}
+          <div className="hidden lg:flex items-center flex-1 space-x-6">
+            <NavLink href="/">Home</NavLink>
+            <NavLink href="/shop">Shop</NavLink>
 
-            {/* Enhanced Categories Dropdown */}
-            <div className="relative" ref={categoriesRef}>
+            {/* Categories Dropdown */}
+            <div className="relative flex items-center h-full" ref={categoriesRef}>
               <button
                 onClick={() => setIsCategoriesOpen(!isCategoriesOpen)}
-                className="flex items-center text-gray-700 hover:text-red-600 font-semibold transition-all duration-300 group"
+                className="flex items-center text-gray-700 hover:text-red-600 font-medium transition-all duration-300 group whitespace-nowrap h-full"
               >
                 Categories
                 <ChevronDown
@@ -133,56 +140,40 @@ export function Navbar() {
               )}
             </div>
 
-            <Link
-              href="/new-arrivals"
-              className="relative text-gray-700 hover:text-red-600 font-semibold transition-all duration-300 group"
-            >
-              <span className="flex items-center">
-                New Arrivals
-                <span className="ml-1 w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-              </span>
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 transition-all duration-300 group-hover:w-full"></span>
-            </Link>
+            <NavLink href="/events">
+              <Calendar className="h-4 w-4 mr-1" />
+              Events
+            </NavLink>
 
-            <Link
-              href="/announcements"
-              className="relative flex items-center text-gray-700 hover:text-red-600 font-semibold transition-all duration-300 group"
-            >
+            <NavLink href="/new-arrivals">
+              <span className="flex items-center whitespace-nowrap">
+                New Arrivals
+                <span className="ml-2 w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+              </span>
+            </NavLink>
+
+            <NavLink href="/announcements">
               <Bell className="h-4 w-4 mr-1" />
               Announcements
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 transition-all duration-300 group-hover:w-full"></span>
-            </Link>
+            </NavLink>
 
-            <Link
-              href="/about"
-              className="relative text-gray-700 hover:text-red-600 font-semibold transition-all duration-300 group"
-            >
-              About
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 transition-all duration-300 group-hover:w-full"></span>
-            </Link>
-
-            <Link
-              href="/contact"
-              className="relative text-gray-700 hover:text-red-600 font-semibold transition-all duration-300 group"
-            >
-              Contact Us
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 transition-all duration-300 group-hover:w-full"></span>
-            </Link>
+            <NavLink href="/about">About</NavLink>
+            <NavLink href="/contact">Contact Us</NavLink>
           </div>
 
-          {/* Right side icons */}
+          {/* Right side actions - Perfectly aligned */}
           <div className="flex items-center space-x-4">
             {/* Search Icon */}
-            <Button variant="ghost" size="sm" className="hidden sm:flex p-2 hover:bg-red-50">
+            <Button variant="ghost" size="sm" className="hidden sm:flex p-2 hover:bg-red-50 h-10 w-10">
               <Search className="h-5 w-5 text-gray-600 hover:text-red-600 transition-colors" />
             </Button>
 
             {/* User Menu */}
-            <div className="hidden sm:block">
+            <div className="hidden sm:flex items-center">
               {state.user ? (
                 <Link
                   href="/admin/dashboard"
-                  className="flex items-center text-gray-700 hover:text-red-600 transition-all duration-300 p-2 rounded-lg hover:bg-red-50"
+                  className="flex items-center text-gray-700 hover:text-red-600 transition-all duration-300 px-3 py-2 rounded-lg hover:bg-red-50 h-10"
                 >
                   <User className="h-5 w-5 mr-1" />
                   <span className="font-medium">{state.user.name}</span>
@@ -190,7 +181,7 @@ export function Navbar() {
               ) : (
                 <Link
                   href="/sign-in"
-                  className="flex items-center text-gray-700 hover:text-red-600 transition-all duration-300 p-2 rounded-lg hover:bg-red-50"
+                  className="flex items-center text-gray-700 hover:text-red-600 transition-all duration-300 px-3 py-2 rounded-lg hover:bg-red-50 h-10"
                 >
                   <User className="h-5 w-5 mr-1" />
                   <span className="font-medium">Login</span>
@@ -198,14 +189,22 @@ export function Navbar() {
               )}
             </div>
 
-            {/* Enhanced Cart */}
+            {/* View Orders Button - Perfectly aligned */}
+            <Link
+              href="/my-orders"
+              className="hidden lg:inline-flex items-center justify-center px-4 py-2 border border-red-600 text-red-600 hover:bg-red-600 hover:text-white font-medium rounded-lg transition-all duration-300 whitespace-nowrap h-10"
+            >
+              View Orders
+            </Link>
+
+            {/* Cart - Perfectly aligned */}
             <Link
               href="/cart"
-              className="relative flex items-center text-gray-700 hover:text-red-600 transition-all duration-300 p-2 rounded-lg hover:bg-red-50 group"
+              className="relative flex items-center justify-center text-gray-700 hover:text-red-600 transition-all duration-300 rounded-lg hover:bg-red-50 group h-10 w-10"
             >
               <ShoppingCart className="h-6 w-6 group-hover:scale-110 transition-transform duration-200" />
               {cartItemsCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold animate-bounce">
+                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold animate-bounce">
                   {cartItemsCount}
                 </span>
               )}
@@ -215,7 +214,7 @@ export function Navbar() {
             <Button
               variant="ghost"
               size="sm"
-              className="lg:hidden p-2 hover:bg-red-50"
+              className="lg:hidden p-2 hover:bg-red-50 h-10 w-10"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -223,7 +222,7 @@ export function Navbar() {
           </div>
         </div>
 
-        {/* Enhanced Mobile Navigation */}
+        {/* Mobile Navigation */}
         {isMenuOpen && (
           <div className="lg:hidden border-t border-gray-200 bg-white animate-in slide-in-from-top duration-300">
             <div className="px-2 pt-2 pb-3 space-y-1">
@@ -251,7 +250,9 @@ export function Navbar() {
                 >
                   Categories
                   <ChevronDown
-                    className={`ml-1 h-4 w-4 transition-transform duration-300 ${isMobileCategoriesOpen ? "rotate-180" : ""}`}
+                    className={`ml-1 h-4 w-4 transition-transform duration-300 ${
+                      isMobileCategoriesOpen ? "rotate-180" : ""
+                    }`}
                   />
                 </button>
                 {isMobileCategoriesOpen && (
@@ -262,10 +263,8 @@ export function Navbar() {
                         href={`/category/${category.toLowerCase().replace(" ", "-")}`}
                         className="block py-2 px-3 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-md transition-all duration-200"
                         onClick={() => {
-                          setTimeout(() => {
-                            setIsMenuOpen(false)
-                            setIsMobileCategoriesOpen(false)
-                          }, 100)
+                          setIsMenuOpen(false)
+                          setIsMobileCategoriesOpen(false)
                         }}
                       >
                         {category}
@@ -274,6 +273,15 @@ export function Navbar() {
                   </div>
                 )}
               </div>
+
+              <Link
+                href="/events"
+                className="flex items-center px-4 py-3 text-gray-700 hover:text-red-600 hover:bg-red-50 font-medium rounded-lg transition-all duration-200"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <Calendar className="h-4 w-4 mr-2" />
+                Events
+              </Link>
 
               <Link
                 href="/new-arrivals"
@@ -305,6 +313,14 @@ export function Navbar() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Contact Us
+              </Link>
+
+              <Link
+                href="/my-orders"
+                className="block px-4 py-3 border border-red-600 text-red-600 hover:bg-red-600 hover:text-white font-medium rounded-lg transition-all duration-200 mt-2 mx-4"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                View Orders
               </Link>
 
               {/* Mobile User Menu */}

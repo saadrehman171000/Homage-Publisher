@@ -1,0 +1,31 @@
+-- CreateTable
+CREATE TABLE "Event" (
+    "id" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "fullDescription" TEXT,
+    "date" TIMESTAMP(3) NOT NULL,
+    "endDate" TIMESTAMP(3),
+    "time" TEXT NOT NULL,
+    "location" TEXT NOT NULL,
+    "address" TEXT,
+    "image" TEXT,
+    "gallery" TEXT[],
+    "category" TEXT NOT NULL,
+    "attendees" INTEGER NOT NULL DEFAULT 0,
+    "maxAttendees" INTEGER,
+    "status" TEXT NOT NULL,
+    "featured" BOOLEAN NOT NULL DEFAULT false,
+    "price" TEXT,
+    "tags" TEXT[],
+    "requirements" TEXT[],
+    "agenda" JSONB,
+    "organizer" TEXT,
+    "contact" TEXT,
+    "phone" TEXT,
+    "website" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Event_pkey" PRIMARY KEY ("id")
+);

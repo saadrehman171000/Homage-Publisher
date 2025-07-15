@@ -2,17 +2,25 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, Package, Sparkles, Bell, X } from "lucide-react"
+import { LayoutDashboard, Package, Sparkles, Bell, Calendar, X } from 'lucide-react'
 
 const links = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/products", label: "Products", icon: Package },
   { href: "/admin/new-arrivals", label: "New Arrivals", icon: Sparkles },
   { href: "/admin/announcements", label: "Announcements", icon: Bell },
+  { href: "/admin/events", label: "Events", icon: Calendar },
 ]
 
-export default function AdminSidebar({ mobileOpen = false, onClose }: { mobileOpen?: boolean; onClose?: () => void }) {
+export default function AdminSidebar({ 
+  mobileOpen = false, 
+  onClose 
+}: { 
+  mobileOpen?: boolean; 
+  onClose?: () => void 
+}) {
   const pathname = usePathname()
+
   return (
     <>
       {/* Desktop Sidebar */}
@@ -33,6 +41,7 @@ export default function AdminSidebar({ mobileOpen = false, onClose }: { mobileOp
           ))}
         </nav>
       </aside>
+
       {/* Mobile Drawer Sidebar */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 bg-black/40 flex md:hidden" onClick={onClose}>
@@ -65,7 +74,3 @@ export default function AdminSidebar({ mobileOpen = false, onClose }: { mobileOp
     </>
   )
 }
-
-// Add this to your global CSS or tailwind.config.js:
-// .animate-slide-in-left { animation: slide-in-left 0.2s ease; }
-// @keyframes slide-in-left { from { transform: translateX(-100%); } to { transform: translateX(0); } } 

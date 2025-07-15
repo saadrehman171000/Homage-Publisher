@@ -18,11 +18,9 @@ export default function CartPage() {
   }
 
   const subtotal = state.cart.reduce((total, item) => {
-    const price = item.product && typeof item.product.discount !== 'undefined'
-      ? item.product.discount
-      ? item.product.price - (item.product.price * item.product.discount) / 100
-      : item.product.price
-      : 0;
+    const price = item.discount
+      ? item.price
+      : item.price;
     return total + price * item.quantity;
   }, 0);
 
@@ -52,17 +50,17 @@ export default function CartPage() {
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4">
             {state.cart.map((item) => {
-              const discountedPrice = item.product.discount
-                ? item.product.price - (item.product.price * item.product.discount) / 100
-                : item.product.price
+              const discountedPrice = item.discount
+                ? item.price
+                : item.price
 
               return (
-                <div key={item.product.id} className="bg-white rounded-lg shadow-sm p-6">
+                <div key={item.id} className="bg-white rounded-lg shadow-sm p-6">
                   <div className="flex items-center space-x-4">
                     <div className="aspect-[3/4] w-20 overflow-hidden rounded-md bg-gray-50">
                       <Image
-                        src={item.product.image || "/placeholder.svg"}
-                        alt={item.product.title}
+                        src={item.image || "/placeholder.svg"}
+                        alt={item.title}
                         width={80}
                         height={100}
                         className="w-full h-full object-contain"
@@ -74,15 +72,12 @@ export default function CartPage() {
                     </div>
 
                     <div className="flex-1">
-                      <h3 className="font-semibold text-lg text-gray-900">{item.product.title}</h3>
-                      <p className="text-gray-600 text-sm mb-2">
-                        {item.product.class} • {item.product.series}
-                      </p>
+                      <h3 className="font-semibold text-lg text-gray-900">{item.title}</h3>
                       <div className="flex items-center space-x-2">
                         <span className="text-lg font-bold text-red-600">Rs. {discountedPrice.toFixed(0)}</span>
-                        {item.product.discount && (
+                        {item.discount && (
                           <span className="text-sm text-gray-500 line-through">
-                            Rs. {item.product.price.toFixed(0)}
+                            Rs. {/* If you want to show original price, store it in CartItem */}
                           </span>
                         )}
                       </div>
@@ -92,7 +87,7 @@ export default function CartPage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                        onClick={() => updateQuantity(item.productId, item.quantity - 1)}
                       >
                         <Minus className="h-4 w-4" />
                       </Button>
@@ -100,7 +95,7 @@ export default function CartPage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                        onClick={() => updateQuantity(item.productId, item.quantity + 1)}
                       >
                         <Plus className="h-4 w-4" />
                       </Button>
@@ -113,7 +108,7 @@ export default function CartPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => removeItem(item.product.id)}
+                        onClick={() => removeItem(item.productId)}
                         className="text-red-600 hover:text-red-700 mt-2"
                       >
                         <Trash2 className="h-4 w-4 mr-1" />

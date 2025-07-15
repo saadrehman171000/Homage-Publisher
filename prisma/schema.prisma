@@ -41,7 +41,7 @@ model Announcement {
 
 model Order {
   id          String   @id @default(uuid())
-  items       Json     // Store cart items as JSON
+  items       Json     // Store cart items as JSON [{title, price, quantity, status}]
   total       Float
   status      String
   createdAt   DateTime @default(now())
@@ -51,4 +51,30 @@ model Order {
   shippingAddress  String
   shippingCity     String
   shippingPostalCode String
+}
+
+model Event {
+  id            String   @id @default(uuid())
+  title         String
+  description   String
+  fullDescription String?
+  date          DateTime
+  endDate       DateTime?
+  time          String
+  location      String
+  address       String?
+  image         String?
+  gallery       String[] // Array of image URLs
+  category      String
+  status        String   // e.g., upcoming, completed, ongoing, cancelled
+  featured      Boolean  @default(false)
+  tags          String[]
+  requirements  String[]
+  agenda        Json?    // Array of { time: string, activity: string }
+  organizer     String?
+  contact       String?
+  phone         String?
+  website       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
