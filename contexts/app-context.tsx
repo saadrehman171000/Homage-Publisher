@@ -166,15 +166,19 @@ function appReducer(state: AppState, action: AppAction): AppState {
     case "REMOVE_FROM_CART":
       return {
         ...state,
-        cart: state.cart.filter((item) => item.id !== action.payload),
+        cart: state.cart.filter((item) => item.productId !== action.payload),
       }
 
     case "UPDATE_CART_QUANTITY":
       return {
         ...state,
-        cart: state.cart.map((item) =>
-          item.productId === action.payload.productId ? { ...item, quantity: action.payload.quantity } : item,
-        ),
+        cart: state.cart
+          .map((item) =>
+            item.productId === action.payload.productId 
+              ? { ...item, quantity: action.payload.quantity } 
+              : item,
+          )
+          .filter((item) => item.quantity > 0), // Remove items with 0 quantity
       }
 
     case "CLEAR_CART":

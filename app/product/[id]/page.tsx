@@ -5,7 +5,7 @@ import { useParams } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ShoppingCart, Minus, Plus } from "lucide-react"
+import { ShoppingCart, Minus, Plus, Check } from "lucide-react"
 import { useApp } from "@/contexts/app-context"
 
 export default function ProductDetailPage() {
@@ -14,6 +14,8 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1)
   const [product, setProduct] = useState(() => state.products.find((p) => p.id === params.id))
   const [loading, setLoading] = useState(!product)
+  const [addingToCart, setAddingToCart] = useState(false)
+  const [justAdded, setJustAdded] = useState(false)
 
   useEffect(() => {
     if (!product) {
@@ -52,9 +54,17 @@ export default function ProductDetailPage() {
 
   const discountedPrice = product.discount ? product.price - (product.price * product.discount) / 100 : product.price
 
-  const handleAddToCart = () => {
+  // Check if item is already in cart
+  const cartItem = state.cart.find(item => item.productId === product.id)
+  const isInCart = !!cartItem
+
+  const handleAddToCart = async () => {
+    if (addingToCart) return; // Prevent multiple rapid clicks
+    
+    setAddingToCart(true)
+    
     const cartItem = {
-      id: `${product.id}-${Date.now()}`,
+      id: `${product.id}-cart-item`, // Use consistent ID format
       productId: product.id,
       title: product.title,
       price: discountedPrice,
@@ -65,11 +75,19 @@ export default function ProductDetailPage() {
           : product.imageUrl || product.image || "/placeholder.svg",
       discount: product.discount,
     };
+    
     console.log("Adding to cart:", cartItem);
     dispatch({
       type: "ADD_TO_CART",
       payload: cartItem,
     });
+
+    // Show success feedback
+    setJustAdded(true)
+    setTimeout(() => {
+      setJustAdded(false)
+      setAddingToCart(false)
+    }, 1500)
   };
 
   return (
@@ -138,6 +156,30 @@ export default function ProductDetailPage() {
                 <p className="text-gray-600 leading-relaxed">{product.description}</p>
               </div>
 
+              {/* Cart Status - Only show when not adding to cart */}
+              {isInCart && !addingToCart && !justAdded && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center">
+                    <Check className="h-5 w-5 text-green-500 mr-2" />
+                    <span className="text-green-700 font-medium">
+                      Already in cart ({cartItem.quantity} {cartItem.quantity === 1 ? 'item' : 'items'})
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Success Message - Only show after adding is complete */}
+              {justAdded && !addingToCart && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center">
+                    <Check className="h-5 w-5 text-green-500 mr-2" />
+                    <span className="text-green-700 font-medium">
+                      Added {quantity} {quantity === 1 ? 'item' : 'items'} to cart!
+                    </span>
+                  </div>
+                </div>
+              )}
+
               {/* Quantity Selector */}
               <div className="space-y-4">
                 <div>
@@ -156,11 +198,30 @@ export default function ProductDetailPage() {
                 <div className="space-y-3">
                   <Button
                     onClick={handleAddToCart}
-                    className="w-full bg-red-600 hover:bg-red-700 text-lg py-3"
+                    disabled={addingToCart}
+                    className={`w-full text-lg py-3 transition-all duration-200 ${
+                      justAdded 
+                        ? 'bg-green-600 hover:bg-green-700' 
+                        : 'bg-red-600 hover:bg-red-700'
+                    } ${addingToCart ? 'opacity-75' : ''}`}
                     size="lg"
                   >
-                    <ShoppingCart className="w-5 h-5 mr-2" />
-                    Add to Cart - Rs. {(discountedPrice * quantity).toFixed(0)}
+                    {addingToCart ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                        Adding to Cart...
+                      </>
+                    ) : justAdded ? (
+                      <>
+                        <Check className="w-5 h-5 mr-2" />
+                        Added to Cart!
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingCart className="w-5 h-5 mr-2" />
+                        {isInCart ? 'Add More' : 'Add to Cart'} - Rs. {(discountedPrice * quantity).toFixed(0)}
+                      </>
+                    )}
                   </Button>
                 </div>
               </div>

@@ -19,20 +19,25 @@ const ALLOWED_STATUSES = [
 // Type for order creation
 interface OrderInput {
   items: any[];
+  subtotal: number;
+  shippingFee: number;
   total: number;
   shippingName: string;
   shippingEmail: string;
   shippingPhone: string;
   shippingAddress: string;
   shippingCity: string;
+  shippingDistrict?: string;
   shippingPostalCode: string;
-  // status is optional, always set to 'Pending Approval' for COD
+  paymentMethod?: string;
 }
 
 function validateOrderInput(data: any): data is OrderInput {
   return (
     Array.isArray(data.items) &&
     typeof data.total === 'number' &&
+    typeof data.subtotal === 'number' &&
+    typeof data.shippingFee === 'number' &&
     typeof data.shippingName === 'string' &&
     typeof data.shippingEmail === 'string' &&
     typeof data.shippingPhone === 'string' &&
@@ -65,15 +70,32 @@ export async function POST(req: NextRequest) {
   if (!validateOrderInput(data)) {
     return NextResponse.json({ error: 'Invalid order data' }, { status: 400 });
   }
+
+  // Validate minimum order amount
+  const MINIMUM_ORDER_AMOUNT = 2000;
+  if (data.subtotal < MINIMUM_ORDER_AMOUNT) {
+    return NextResponse.json({ 
+      error: `Minimum order amount is Rs. ${MINIMUM_ORDER_AMOUNT}. Current subtotal: Rs. ${data.subtotal}` 
+    }, { status: 400 });
+  }
+
   // Set status: 'Pending' for each item
   const itemsWithStatus = data.items.map((item: any) => ({ ...item, status: 'Pending' }));
+  
   const order = await prisma.order.create({
     data: {
-      ...data,
       items: itemsWithStatus,
-      status: 'Pending Approval', // Always set for COD
+      total: data.total,
+      status: 'Pending Approval', // Always set for new orders
+      shippingName: data.shippingName,
+      shippingEmail: data.shippingEmail,
+      shippingPhone: data.shippingPhone,
+      shippingAddress: `${data.shippingAddress}, ${data.shippingDistrict || ''}, ${data.shippingCity}`.trim().replace(/,\s*,/g, ','),
+      shippingCity: data.shippingCity,
+      shippingPostalCode: data.shippingPostalCode,
     },
   });
+  
   return NextResponse.json(order);
 }
 

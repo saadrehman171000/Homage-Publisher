@@ -484,4 +484,147 @@ We look forward to serving you again!
     console.error("Failed to send delivery confirmation email:", error)
     return null
   }
+}
+
+export async function sendContactFormEmail(formData: {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}) {
+  const { name, email, subject, message } = formData;
+
+  const emailHtml = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>New Contact Form Submission</title>
+      <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f8fafc; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+        .header { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); padding: 40px 30px; text-align: center; }
+        .logo { max-width: 200px; height: auto; margin-bottom: 15px; }
+        .header h1 { color: white; margin: 0; font-size: 28px; font-weight: 600; }
+        .content { padding: 40px 30px; }
+        .form-section { background-color: #f8fafc; border-radius: 12px; padding: 25px; margin: 20px 0; border-left: 4px solid #dc2626; }
+        .form-row { margin-bottom: 15px; }
+        .form-label { font-weight: 600; color: #374151; margin-bottom: 5px; display: block; font-size: 14px; }
+        .form-value { color: #6b7280; font-size: 15px; line-height: 1.5; padding: 8px 0; }
+        .message-box { background-color: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin-top: 10px; }
+        .footer { background-color: #f8fafc; padding: 30px; text-align: center; border-top: 1px solid #e5e7eb; }
+        .footer p { margin: 5px 0; color: #6b7280; font-size: 14px; }
+        .alert-box { background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 15px; margin: 20px 0; }
+        .alert-text { color: #92400e; font-weight: 500; font-size: 14px; margin: 0; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <!-- Header -->
+        <div class="header">
+          <img src="https://homage-publishers.vercel.app/images/homage-logo-01.png" alt="Homage Educational Publishers" class="logo">
+          <h1>New Contact Form Submission</h1>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+          <p style="color: #374151; font-size: 16px; margin-bottom: 25px;">
+            You have received a new message through your website contact form.
+          </p>
+
+          <!-- Alert Box -->
+          <div class="alert-box">
+            <p class="alert-text">⚠️ New customer inquiry requires your attention</p>
+          </div>
+
+          <!-- Contact Form Details -->
+          <div class="form-section">
+            <h3 style="margin-top: 0; color: #374151; font-size: 18px;">Contact Details</h3>
+            
+            <div class="form-row">
+              <label class="form-label">Full Name:</label>
+              <div class="form-value">${name}</div>
+            </div>
+
+            <div class="form-row">
+              <label class="form-label">Email Address:</label>
+              <div class="form-value">
+                <a href="mailto:${email}" style="color: #dc2626; text-decoration: none;">${email}</a>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label class="form-label">Subject:</label>
+              <div class="form-value">${subject}</div>
+            </div>
+
+            <div class="form-row">
+              <label class="form-label">Message:</label>
+              <div class="message-box">
+                ${message.replace(/\n/g, '<br>')}
+              </div>
+            </div>
+          </div>
+
+          <!-- Response Actions -->
+          <div style="background-color: #f0f9ff; border-radius: 12px; padding: 20px; margin: 25px 0; border-left: 4px solid #0ea5e9;">
+            <h4 style="margin-top: 0; color: #0369a1; font-size: 16px;">Recommended Actions:</h4>
+            <ul style="color: #075985; margin: 10px 0; padding-left: 20px;">
+              <li>Reply to customer within 24 hours for best service</li>
+              <li>Check if this is a bulk order inquiry</li>
+              <li>Add customer to newsletter if appropriate</li>
+              <li>Log inquiry in customer management system</li>
+            </ul>
+          </div>
+
+          <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
+            This email was automatically generated from your website contact form. 
+            To reply, simply respond to <strong>${email}</strong>
+          </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+          <p><strong>Homage Educational Publishers</strong></p>
+          <p>Office No. 7, Shan Plaza, Gawali Lane Number 2, New Urdu Bazar, Karachi</p>
+          <p>📞 +92-21-3277-8692 | 📧 contact@homagepublishers.com</p>
+          <p style="margin-top: 15px; color: #9ca3af; font-size: 12px;">
+            Received: ${new Date().toLocaleString('en-US', { 
+              timeZone: 'Asia/Karachi',
+              year: 'numeric',
+              month: 'long', 
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            })} (PKT)
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  try {
+    console.log('Sending contact form email to info@homagepublishers.com');
+    
+    const { data, error } = await resend.emails.send({
+      from: 'Contact Form <noreply@homagepublishers.com>',
+      to: ['info@homagepublishers.com'],
+      subject: `New Contact: ${subject}`,
+      html: emailHtml,
+      replyTo: email, // Allow direct reply to customer
+    });
+
+    if (error) {
+      console.error('Resend error:', error);
+      throw new Error(`Failed to send contact email: ${error.message}`);
+    }
+
+    console.log('Contact form email sent successfully:', data?.id);
+    return { success: true, id: data?.id };
+  } catch (error) {
+    console.error('Error sending contact form email:', error);
+    throw error;
+  }
 } 
