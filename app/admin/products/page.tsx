@@ -265,14 +265,14 @@ export default function AdminProductsPage() {
                             ? `/api/products/${product.id}/image`
                             : product.imageUrl || product.image || "/placeholder.svg"
                         }
-                        alt={product.title}
-                        width={300}
-                        height={400}
-                        className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement
-                          target.src = "/placeholder.svg?height=400&width=300"
-                        }}
+                      alt={product.title}
+                      width={300}
+                      height={400}
+                      className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement
+                        target.src = "/placeholder.svg?height=400&width=300"
+                      }}
                     />
                   </div>
                   <div className="absolute top-2 right-2 flex gap-2">

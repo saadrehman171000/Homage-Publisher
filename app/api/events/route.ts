@@ -96,4 +96,4 @@ export async function DELETE(req: NextRequest) {
   } catch (error) {
     return NextResponse.json({ error: 'Failed to delete event', details: error }, { status: 500 });
   }
-} 
+}

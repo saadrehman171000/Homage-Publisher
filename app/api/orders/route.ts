@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient, Order as PrismaOrder } from '@prisma/client';
+import { 
+  sendOrderConfirmationEmail, 
+  sendShippingNotificationEmail, 
+  sendDeliveryConfirmationEmail 
+} from '@/lib/sendOrderEmail';
 
 const prisma = new PrismaClient();
 
@@ -75,14 +80,57 @@ export async function POST(req: NextRequest) {
 // PATCH: Update order status or item status
 export async function PATCH(req: NextRequest) {
   const body = await req.json();
+  
   // Update whole order status
   if (body.id && body.status && !body.itemIndex) {
+    // Get the current order to check previous status
+    const currentOrder = await prisma.order.findUnique({ where: { id: body.id } });
+    if (!currentOrder) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    }
+
     const order = await prisma.order.update({
       where: { id: body.id },
       data: { status: body.status },
     });
+
+    // Send email notifications based on status change
+    // Only send email if status has actually changed
+    if (currentOrder.status !== body.status) {
+      console.log(`Order status changed from "${currentOrder.status}" to "${body.status}"`);
+      
+      try {
+        switch (body.status) {
+          case "Approved":
+            console.log('Sending order confirmation email to:', order.shippingEmail);
+            await sendOrderConfirmationEmail(order);
+            console.log('Order confirmation email sent successfully');
+            break;
+            
+          case "Out for Delivery":
+            console.log('Sending shipping notification email to:', order.shippingEmail);
+            await sendShippingNotificationEmail(order);
+            console.log('Shipping notification email sent successfully');
+            break;
+            
+          case "Delivered":
+            console.log('Sending delivery confirmation email to:', order.shippingEmail);
+            await sendDeliveryConfirmationEmail(order);
+            console.log('Delivery confirmation email sent successfully');
+            break;
+            
+          default:
+            console.log(`No email notification configured for status: ${body.status}`);
+        }
+      } catch (error) {
+        console.error('Error sending email notification:', error);
+        // Don't fail the order update if email fails
+      }
+    }
+
     return NextResponse.json(order);
   }
+  
   // Update item status
   if (body.id && typeof body.itemIndex === 'number' && body.itemStatus) {
     const order = await prisma.order.findUnique({ where: { id: body.id } });
@@ -102,6 +150,7 @@ export async function PATCH(req: NextRequest) {
     });
     return NextResponse.json(updated);
   }
+  
   return NextResponse.json({ error: 'Invalid PATCH request' }, { status: 400 });
 }
 
