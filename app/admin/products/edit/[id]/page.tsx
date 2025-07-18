@@ -30,8 +30,10 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     discount: "",
     image: "",
     category: "",
+    subject: "",
     series: "",
     customSeries: "",
+    type: "",
     isNewArrival: false,
     isFeatured: false,
     rating: "",
@@ -47,24 +49,48 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   }
 
   const categories = [
-    "Pre-School",
-    "Grade 1",
-    "Grade 2",
-    "Grade 3",
-    "Grade 4",
-    "Grade 5",
-    "Grade 6",
-    "Grade 7",
-    "Grade 8",
+    "Beginner",
+    "Step-1",
+    "Step-2",
+    "Step-3",
+    "Class 1",
+    "Class 2",
+    "Class 3",
+    "Class 4",
+    "Class 5",
+    "Class 6",
+    "Class 7",
+    "Class 8",
   ]
-  const seriesOptions = [
-    "English Series",
-    "Math Series",
-    "Science Series",
-    "Urdu Series",
-    "Social Studies Series",
-    "Early Learning Series",
+  const subjectOptions = [
+    "English",
+    "Urdu", 
+    "Mathematics",
+    "Sindhi",
+    "Social Studies",
+    "Science",
+    "General Knowledge",
+    "Islamic Studies",
+    "Computer Science",
+    "Art & Craft",
     "Other",
+  ]
+
+  const seriesOptions = [
+    "Early Learners",
+    "Pre-Primary",
+    "Primary Series",
+    "Foundation Series",
+    "Advanced Series",
+    "Other",
+  ]
+
+  const typeOptions = [
+    "Reader",
+    "Copy",
+    "Workbook",
+    "Activity Book",
+    "Guide Book",
   ]
 
   // Load product data
@@ -85,8 +111,10 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
             discount: product.discount?.toString() || "",
             image: product.imageUrl || product.image || "",
             category: product.category || "",
+            subject: product.subject || "",
             series: isCustomSeries ? "Other" : product.series || "",
             customSeries: isCustomSeries ? product.series || "" : "",
+            type: product.type || "",
             isNewArrival: product.isNewArrival || false,
             isFeatured: product.isFeatured || false,
             rating: product.rating?.toString() || "",
@@ -110,9 +138,21 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   }, [id, router])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    let value = e.target.value
+    
+    // Auto-convert Google Drive URLs to proxy format
+    if (e.target.name === 'image' && value.includes('drive.google.com')) {
+      // Extract file ID from various Google Drive URL formats
+      const fileIdMatch = value.match(/\/d\/([a-zA-Z0-9_-]+)/) || value.match(/id=([a-zA-Z0-9_-]+)/)
+      if (fileIdMatch) {
+        const fileId = fileIdMatch[1]
+        value = `/api/image-proxy?url=${encodeURIComponent(`https://drive.google.com/uc?export=view&id=${fileId}`)}`
+      }
+    }
+    
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [e.target.name]: value,
     })
   }
 
@@ -144,7 +184,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     setIsSubmitting(true)
 
     // Validate required fields
-    if (!formData.title || !formData.description || !formData.price || !formData.category || !formData.series) {
+    if (!formData.title || !formData.description || !formData.price || !formData.category || !formData.subject || !formData.series || !formData.type) {
       alert("Please fill in all required fields")
       setIsSubmitting(false)
       return
@@ -173,7 +213,9 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           discount: formData.discount ? Number.parseInt(formData.discount) : 0,
           image: formData.image || "/placeholder.svg?height=300&width=200",
           category: formData.category,
+          subject: formData.subject,
           series: finalSeries,
+          type: formData.type,
           isNewArrival: formData.isNewArrival,
           isFeatured: formData.isFeatured,
           rating: formData.rating ? Number.parseFloat(formData.rating) : undefined,
@@ -293,6 +335,24 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                 </div>
 
                 <div>
+                  <Label htmlFor="subject">Subject *</Label>
+                  <Select value={formData.subject} onValueChange={(value) => handleSelectChange("subject", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select subject" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {subjectOptions.map((subject) => (
+                        <SelectItem key={subject} value={subject}>
+                          {subject}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
                   <Label htmlFor="series">Series *</Label>
                   <Select value={formData.series} onValueChange={(value) => handleSelectChange("series", value)}>
                     <SelectTrigger>
@@ -320,6 +380,22 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                       />
                     </div>
                   )}
+                </div>
+
+                <div>
+                  <Label htmlFor="type">Type *</Label>
+                  <Select value={formData.type} onValueChange={(value) => handleSelectChange("type", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {typeOptions.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </CardContent>
@@ -377,8 +453,11 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                   name="image"
                   value={formData.image}
                   onChange={handleInputChange}
-                  placeholder="Enter image URL for the title page"
+                  placeholder="Enter image URL or Google Drive sharing link"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  💡 You can paste Google Drive sharing links directly - they'll be automatically converted!
+                </p>
               </div>
 
               {formData.image && (

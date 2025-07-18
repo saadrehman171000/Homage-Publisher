@@ -306,13 +306,23 @@ export default function AdminProductsPage() {
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between mb-4">
-                    <Badge variant="outline" className="text-xs">
+                  <div className="grid grid-cols-2 gap-2 mb-4">
+                    <Badge variant="outline" className="text-xs justify-center">
                       {product.category}
                     </Badge>
-                    <Badge variant="outline" className="text-xs">
+                    {product.subject && (
+                      <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 justify-center">
+                        {product.subject}
+                      </Badge>
+                    )}
+                    <Badge variant="outline" className="text-xs bg-green-50 text-green-700 justify-center">
                       {product.series}
                     </Badge>
+                    {product.type && (
+                      <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 justify-center">
+                        {product.type}
+                      </Badge>
+                    )}
                   </div>
 
                   <div className="flex gap-2">

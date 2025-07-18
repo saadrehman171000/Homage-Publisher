@@ -20,7 +20,9 @@ export interface Product {
   discount?: number
   image: string
   category: string
+  subject?: string
   series: string
+  type?: string
   isNewArrival?: boolean
   isFeatured?: boolean
   rating?: number

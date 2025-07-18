@@ -11,15 +11,24 @@ import { Badge } from "@/components/ui/badge";
 import { ProductCard } from "@/components/ui/product-card";
 
 const categorySlugToName: Record<string, string> = {
-  "pre-school": "Pre-School",
-  "grade-1": "Grade 1",
-  "grade-2": "Grade 2",
-  "grade-3": "Grade 3",
-  "grade-4": "Grade 4",
-  "grade-5": "Grade 5",
-  "grade-6": "Grade 6",
-  "grade-7": "Grade 7",
-  "grade-8": "Grade 8",
+  "beginner": "Beginner",
+  "step-1": "Step-1",
+  "step-2": "Step-2",
+  "step-3": "Step-3",
+  "class-1": "Class 1",
+  "class-2": "Class 2",
+  "class-3": "Class 3",
+  "class-4": "Class 4",
+  "class-5": "Class 5",
+  "class-6": "Class 6",
+  "class-7": "Class 7",
+  "class-8": "Class 8",
+  // Combined categories from homepage
+  "beginner-step-3": "Beginner-Step 3",
+  "class-1-class-2": "Class 1-Class 2",
+  "class-3-class-4": "Class 3-Class 4",
+  "class-5-class-6": "Class 5-Class 6",
+  "class-7-class-8": "Class 7-Class 8",
   // Add more if needed
 }
 
@@ -47,7 +56,27 @@ export default function CategoryPage() {
     fetchProducts()
   }, [categoryName])
 
-  const filteredProducts = products.filter((product: any) => product.category === categoryName)
+  // Handle combined categories
+  const getCategoriesFromName = (categoryName: string): string[] => {
+    if (categoryName === "Beginner-Step 3") {
+      return ["Beginner", "Step-1", "Step-2", "Step-3"]
+    } else if (categoryName === "Class 1-Class 2") {
+      return ["Class 1", "Class 2"]
+    } else if (categoryName === "Class 3-Class 4") {
+      return ["Class 3", "Class 4"]
+    } else if (categoryName === "Class 5-Class 6") {
+      return ["Class 5", "Class 6"]
+    } else if (categoryName === "Class 7-Class 8") {
+      return ["Class 7", "Class 8"]
+    } else {
+      return [categoryName]
+    }
+  }
+
+  const categoriesToMatch = getCategoriesFromName(categoryName)
+  const filteredProducts = products.filter((product: any) => 
+    categoriesToMatch.includes(product.category)
+  )
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">

@@ -11,15 +11,18 @@ import { Button } from "@/components/ui/button"
 import { useApp } from "@/contexts/app-context"
 
 const categories = [
-  "Pre-School",
-  "Grade 1",
-  "Grade 2",
-  "Grade 3",
-  "Grade 4",
-  "Grade 5",
-  "Grade 6",
-  "Grade 7",
-  "Grade 8",
+  "Beginner",
+  "Step-1",
+  "Step-2",
+  "Step-3",
+  "Class 1",
+  "Class 2",
+  "Class 3",
+  "Class 4",
+  "Class 5",
+  "Class 6",
+  "Class 7",
+  "Class 8",
 ]
 
 /**

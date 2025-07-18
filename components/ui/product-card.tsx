@@ -137,6 +137,36 @@ export function ProductCard({ product, showNewBadge = false }: ProductCardProps)
             </Badge>
           </div>
 
+          {/* Product Details Section */}
+          <div className="space-y-2">
+            {product.subject && (
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-500 font-medium">Subject:</span>
+                <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                  {product.subject}
+                </Badge>
+              </div>
+            )}
+            
+            {product.series && (
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-500 font-medium">Series:</span>
+                <Badge variant="secondary" className="text-xs bg-green-50 text-green-700 border-green-200">
+                  {product.series}
+                </Badge>
+              </div>
+            )}
+            
+            {product.type && (
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-500 font-medium">Type:</span>
+                <Badge variant="secondary" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+                  {product.type}
+                </Badge>
+              </div>
+            )}
+          </div>
+
           {/* Enhanced rating section */}
           {product.rating && (
             <div className="flex items-center justify-between">

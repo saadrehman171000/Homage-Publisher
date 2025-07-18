@@ -141,7 +141,7 @@ export default function HomePage() {
 
               <p className="text-xl lg:text-2xl mb-10 text-red-100 leading-relaxed">
                 Discover our comprehensive collection of educational books designed to inspire and educate students from
-                Pre-School to Grade 8. Excellence in education, delivered to your doorstep.
+                Beginner to Class 8. Excellence in education, delivered to your doorstep.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-6 justify-center lg:justify-start">
@@ -215,19 +215,19 @@ export default function HomePage() {
               <BookOpen className="h-4 w-4 mr-2" />
               Browse Categories
             </div>
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">Find Books by Grade</h2>
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">Find Books by Level</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Discover curriculum-aligned educational materials designed specifically for each grade level
+              Discover curriculum-aligned educational materials designed specifically for each learning level
             </p>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
             {[
-              { name: "Pre-School", icon: "🎨", color: "from-pink-400 to-pink-600" },
-              { name: "Grade 1-2", icon: "📚", color: "from-blue-400 to-blue-600" },
-              { name: "Grade 3-4", icon: "🔬", color: "from-green-400 to-green-600" },
-              { name: "Grade 5-6", icon: "🧮", color: "from-purple-400 to-purple-600" },
-              { name: "Grade 7-8", icon: "🎓", color: "from-orange-400 to-orange-600" },
+              { name: "Beginner-Step 3", icon: "🎨", color: "from-pink-400 to-pink-600" },
+              { name: "Class 1-Class 2", icon: "📚", color: "from-blue-400 to-blue-600" },
+              { name: "Class 3-Class 4", icon: "🔬", color: "from-green-400 to-green-600" },
+              { name: "Class 5-Class 6", icon: "🧮", color: "from-purple-400 to-purple-600" },
+              { name: "Class 7-Class 8", icon: "🎓", color: "from-orange-400 to-orange-600" },
             ].map((category, index) => (
               <Link
                 key={category.name}
@@ -278,7 +278,7 @@ export default function HomePage() {
 
           {/* Enhanced Product Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {newArrivals.slice(0, 4).map((product, index) => (
+            {newArrivals.slice(0, 4).map((product: any, index) => (
               <ProductCard key={product.id} product={product} showNewBadge />
             ))}
           </div>

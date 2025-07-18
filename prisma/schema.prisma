@@ -22,7 +22,9 @@ model Product {
   imageUrl    String?
   pdfUrl      String?
   category    String
+  subject     String?
   series      String
+  type        String?
   isNewArrival Boolean  @default(false)
   isFeatured   Boolean  @default(false)
   rating      Float?
