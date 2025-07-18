@@ -61,34 +61,67 @@ export default function OrderConfirmationPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-          <CheckCircle className="mx-auto h-16 w-16 text-green-500 mb-6" />
+          <div className="bg-green-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
+            <CheckCircle className="h-16 w-16 text-green-500" />
+          </div>
 
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Order Confirmed!</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">🎉 Thank You for Your Order!</h1>
 
-          <p className="text-lg text-gray-600 mb-8">
-            Thank you for your order. We've received your order and will process it shortly.
-          </p>
+          <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-6 mb-8">
+            <p className="text-lg text-gray-800 mb-4 leading-relaxed">
+              <strong>Your order has been successfully placed!</strong> We're excited to get your educational books to you.
+            </p>
+            
+            <div className="space-y-3 text-gray-700">
+              <div className="flex items-center justify-center space-x-2">
+                <span>📞</span>
+                <p><strong>We will contact you soon</strong> on your provided number: <span className="font-semibold text-blue-600">{order.shippingPhone}</span></p>
+              </div>
+              
+              <div className="flex items-center justify-center space-x-2">
+                <span>📧</span>
+                <p><strong>Please keep checking your email</strong> at <span className="font-semibold text-blue-600">{order.shippingEmail}</span> for order updates</p>
+              </div>
+              
+              <div className="flex items-center justify-center space-x-2">
+                <span>📦</span>
+                <p>Your <strong>Order ID is #{order.id.slice(-6)}</strong> - save it for reference</p>
+              </div>
+            </div>
+          </div>
 
           <div className="bg-gray-50 rounded-lg p-6 mb-8">
+            <h3 className="text-xl font-semibold text-gray-900 mb-6 text-center">📋 Order Summary</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-2">Order Details</h3>
-                <p className="text-sm text-gray-600">Order ID: #{order.id}</p>
-                <p className="text-sm text-gray-600">Date: {new Date(order.createdAt).toLocaleDateString()}</p>
-                <p className="text-sm text-gray-600">Status: {order.status}</p>
+              <div className="bg-white p-4 rounded-lg border">
+                <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                  📦 Order Details
+                </h4>
+                <div className="space-y-2">
+                  <p className="text-sm"><span className="text-gray-500">Order ID:</span> <span className="font-medium">#{order.id.slice(-6)}</span></p>
+                  <p className="text-sm"><span className="text-gray-500">Date:</span> <span className="font-medium">{new Date(order.createdAt).toLocaleDateString()}</span></p>
+                  <p className="text-sm"><span className="text-gray-500">Status:</span> <span className="font-medium text-blue-600">{order.status}</span></p>
+                  <p className="text-sm"><span className="text-gray-500">Payment:</span> <span className="font-medium">{getPaymentMethodName(order.paymentMethod || 'cod')}</span></p>
+                </div>
               </div>
 
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-2">Shipping Info</h3>
-                <p className="text-sm text-gray-600">{order.shippingName}</p>
-                <p className="text-sm text-gray-600">{order.shippingEmail}</p>
-                <p className="text-sm text-gray-600">{order.shippingPhone}</p>
-                <p className="text-sm text-gray-600">{order.shippingAddress}, {order.shippingCity}, {order.shippingPostalCode}</p>
+              <div className="bg-white p-4 rounded-lg border">
+                <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                  🚚 Delivery Address
+                </h4>
+                <div className="space-y-1 text-sm">
+                  <p className="font-medium">{order.shippingName}</p>
+                  <p className="text-gray-600">{order.shippingAddress}</p>
+                  <p className="text-gray-600">{order.shippingCity}, {order.shippingPostalCode}</p>
+                  <p className="text-blue-600 font-medium">{order.shippingPhone}</p>
+                </div>
               </div>
-
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-2">Order Total</h3>
-                <p className="text-lg font-bold text-red-600">Rs. {order.total.toFixed(0)}</p>
+            </div>
+            
+            <div className="mt-6 bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-lg font-semibold text-gray-900">💰 Total Amount</span>
+                <span className="text-2xl font-bold text-red-600">Rs. {order.total.toFixed(0)}</span>
               </div>
             </div>
           </div>
@@ -128,10 +161,34 @@ export default function OrderConfirmationPage() {
             </div>
           </div>
 
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-8">
+            <p className="text-yellow-800 font-medium">
+              💡 <strong>Important:</strong> Our team will call you within 24 hours to confirm your order and delivery details.
+            </p>
+          </div>
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild className="bg-red-600 hover:bg-red-700">
-              <Link href="/shop">Continue Shopping</Link>
+            <Button asChild size="lg" className="bg-red-600 hover:bg-red-700">
+              <Link href={`/my-orders`}>
+                📋 View Order Details
+              </Link>
             </Button>
+            <Button asChild variant="outline" size="lg">
+              <Link href="/shop">
+                🛍️ Continue Shopping
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="lg">
+              <Link href="/contact">
+                📞 Contact Us
+              </Link>
+            </Button>
+          </div>
+
+          <div className="mt-8 text-center">
+            <p className="text-gray-600 text-sm">
+              Questions about your order? Contact us at <strong>+92-21-3277-8692</strong> or email <strong>contact@homagepublishers.com</strong>
+            </p>
           </div>
         </div>
       </div>

@@ -66,12 +66,14 @@ export default function CheckoutPage() {
   const [availableDistricts, setAvailableDistricts] = useState<string[]>([])
   const [shippingFee, setShippingFee] = useState(0)
 
-  // Redirect if cart is empty
+  // Redirect if cart is empty (but not if we're processing an order)
+  const [isProcessingOrder, setIsProcessingOrder] = useState(false)
+  
   useEffect(() => {
-    if (state.cart.length === 0) {
+    if (state.cart.length === 0 && !isProcessingOrder) {
       router.push("/cart")
     }
-  }, [state.cart.length, router])
+  }, [state.cart.length, router, isProcessingOrder])
 
   // Update available districts when city changes
   useEffect(() => {
@@ -142,6 +144,8 @@ export default function CheckoutPage() {
       return
     }
 
+    setIsProcessingOrder(true) // Prevent cart redirect during order processing
+
     // Prepare order data for backend
     const orderData = {
       items: state.cart.map((item) => ({
@@ -173,9 +177,13 @@ export default function CheckoutPage() {
       })
       if (!res.ok) throw new Error('Order failed')
       const order = await res.json()
+      
+      // Clear cart and redirect to order confirmation
       dispatch({ type: 'CLEAR_CART' })
-    router.push(`/order-confirmation/${order.id}`)
+      router.push(`/order-confirmation/${order.id}`)
     } catch (err) {
+      console.error('Order placement error:', err)
+      setIsProcessingOrder(false) // Reset processing state on error
       alert('Failed to place order. Please try again.')
     }
   }
@@ -348,11 +356,20 @@ export default function CheckoutPage() {
 
               <Button 
                 type="submit" 
-                className={`w-full ${isMinimumOrderMet ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-400 cursor-not-allowed'}`}
+                className={`w-full ${isMinimumOrderMet && !isProcessingOrder ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-400 cursor-not-allowed'}`}
                 size="lg"
-                disabled={!isMinimumOrderMet}
+                disabled={!isMinimumOrderMet || isProcessingOrder}
               >
-                {isMinimumOrderMet ? 'Place Order' : `Add Rs. ${(MINIMUM_ORDER_AMOUNT - subtotal).toFixed(0)} More to Continue`}
+                {isProcessingOrder ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Processing Order...
+                  </>
+                ) : isMinimumOrderMet ? (
+                  'Place Order'
+                ) : (
+                  `Add Rs. ${(MINIMUM_ORDER_AMOUNT - subtotal).toFixed(0)} More to Continue`
+                )}
               </Button>
             </form>
           </div>
