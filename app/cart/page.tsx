@@ -80,17 +80,85 @@ export default function CartPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Cart Items */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="lg:col-span-2 space-y-3 sm:space-y-4">
             {state.cart.map((item) => {
               const discountedPrice = typeof item.discount === 'number'
                 ? item.price - (item.price * item.discount) / 100
                 : item.price
 
               return (
-                <div key={item.id} className="bg-white rounded-lg shadow-sm p-6">
-                  <div className="flex items-center space-x-4">
+                <div key={item.id} className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+                  {/* Mobile Layout */}
+                  <div className="block sm:hidden">
+                    <div className="flex items-start space-x-3 mb-3">
+                      <div className="aspect-[3/4] w-16 flex-shrink-0 overflow-hidden rounded-md bg-gray-50">
+                        <Image
+                          src={item.image || "/placeholder.svg"}
+                          alt={item.title}
+                          width={64}
+                          height={80}
+                          className="w-full h-full object-contain"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            target.src = "/placeholder.svg?height=80&width=64"
+                          }}
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-base text-gray-900 truncate">{item.title}</h3>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <span className="text-base font-bold text-red-600">Rs. {discountedPrice.toFixed(0)}</span>
+                          {item.discount && (
+                            <span className="text-xs text-gray-500 line-through">
+                              Rs. {item.price.toFixed(0)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => updateQuantity(item.productId, Math.max(1, item.quantity - 1))}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Minus className="h-3 w-3" />
+                        </Button>
+                        <span className="text-sm font-medium px-2 min-w-[2rem] text-center">{item.quantity}</span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Plus className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      
+                      <div className="text-right">
+                        <p className="text-base font-bold text-gray-900">
+                          Rs. {(discountedPrice * item.quantity).toFixed(0)}
+                        </p>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeItem(item.productId)}
+                          className="text-red-600 hover:text-red-700 h-8 text-xs"
+                        >
+                          <Trash2 className="h-3 w-3 mr-1" />
+                          Remove
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Desktop Layout */}
+                  <div className="hidden sm:flex items-center space-x-4">
                     <div className="aspect-[3/4] w-20 overflow-hidden rounded-md bg-gray-50">
                       <Image
                         src={item.image || "/placeholder.svg"}
@@ -156,8 +224,8 @@ export default function CartPage() {
           </div>
 
           {/* Order Summary */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm p-6 sticky top-4">
+          <div className="lg:col-span-1 order-first lg:order-last">
+            <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6 lg:sticky lg:top-4">
               <h2 className="text-xl font-bold text-gray-900 mb-4">Order Summary</h2>
 
               <div className="space-y-3 mb-6">
@@ -201,7 +269,7 @@ export default function CartPage() {
               <div className="space-y-3">
                 <Button 
                   asChild 
-                  className={`w-full ${isMinimumOrderMet ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-400 cursor-not-allowed'}`} 
+                  className={`w-full text-sm sm:text-base ${isMinimumOrderMet ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-400 cursor-not-allowed'}`} 
                   size="lg"
                   disabled={!isMinimumOrderMet}
                 >
@@ -209,7 +277,7 @@ export default function CartPage() {
                     {isMinimumOrderMet ? 'Proceed to Checkout' : `Add Rs. ${(MINIMUM_ORDER_AMOUNT - subtotal).toFixed(0)} More`}
                   </Link>
                 </Button>
-                <Button asChild variant="outline" className="w-full bg-transparent">
+                <Button asChild variant="outline" className="w-full bg-transparent text-sm sm:text-base">
                   <Link href="/shop">Continue Shopping</Link>
                 </Button>
               </div>
