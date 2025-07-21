@@ -60,7 +60,7 @@ export default function AdminDashboardPage() {
     async function fetchProducts() {
       setLoadingProducts(true)
       try {
-        const res = await fetch("/api/products")
+        const res = await fetch("/api/products?all=true")
         const data = await res.json()
         setProducts(data)
       } catch (error) {

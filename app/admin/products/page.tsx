@@ -18,23 +18,61 @@ export default function AdminProductsPage() {
   const [seriesFilter, setSeriesFilter] = useState("all")
   const [sortBy, setSortBy] = useState("name")
   const [products, setProducts] = useState([])
+  const [allProducts, setAllProducts] = useState([]) // For stats and filters
   const [loading, setLoading] = useState(true)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalProducts: 0,
+    hasNextPage: false,
+    hasPrevPage: false,
+    limit: 16
+  })
 
+  // Fetch all products for stats and filters
+  useEffect(() => {
+    async function fetchAllProducts() {
+      try {
+        const res = await fetch("/api/products?all=true")
+        const data = await res.json()
+        const normalized = data.map((p: any) => ({ ...p, image: p.imageUrl || p.image || "" }))
+        setAllProducts(normalized)
+      } catch (error) {
+        setAllProducts([])
+      }
+    }
+    fetchAllProducts()
+  }, [])
+
+  // Fetch paginated products
   useEffect(() => {
     async function fetchProducts() {
       setLoading(true)
-      const res = await fetch("/api/products")
-      const data = await res.json()
-      const normalized = data.map((p: any) => ({ ...p, image: p.imageUrl || p.image || "" }))
-      setProducts(normalized)
-      setLoading(false)
+      try {
+        const res = await fetch(`/api/products?page=${currentPage}&limit=16`)
+        const data = await res.json()
+        if (data.products) {
+          const normalized = data.products.map((p: any) => ({ ...p, image: p.imageUrl || p.image || "" }))
+          setProducts(normalized)
+          setPagination(data.pagination)
+        } else {
+          // Fallback for old API response format
+          const normalized = data.map((p: any) => ({ ...p, image: p.imageUrl || p.image || "" }))
+          setProducts(normalized)
+        }
+      } catch (error) {
+        setProducts([])
+      } finally {
+        setLoading(false)
+      }
     }
     fetchProducts()
-  }, [])
+  }, [currentPage])
 
-  // Get unique categories and series
-  const categories = ["all", ...Array.from(new Set(products.map((p: any) => p.category)))]
-  const series = ["all", ...Array.from(new Set(products.map((p: any) => p.series)))]
+  // Get unique categories and series (use all products)
+  const categories = ["all", ...Array.from(new Set(allProducts.map((p: any) => p.category)))]
+  const series = ["all", ...Array.from(new Set(allProducts.map((p: any) => p.series)))]
 
   // Filter and sort products
   const filteredProducts = products
@@ -61,6 +99,11 @@ export default function AdminProductsPage() {
       }
     })
 
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm, categoryFilter, seriesFilter, sortBy])
+
   const handleDeleteProduct = async (productId: string) => {
     if (!confirm("Are you sure you want to delete this product?")) {
       return
@@ -78,6 +121,7 @@ export default function AdminProductsPage() {
 
       // Remove from local state
       setProducts(products.filter((p: any) => p.id !== productId))
+      setAllProducts(allProducts.filter((p: any) => p.id !== productId))
       
       // Show success message
       alert("Product deleted successfully!")
@@ -125,7 +169,7 @@ export default function AdminProductsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Products</p>
-                  <p className="text-3xl font-bold text-gray-900">{products.length}</p>
+                  <p className="text-3xl font-bold text-gray-900">{allProducts.length}</p>
                 </div>
                 <Package className="h-8 w-8 text-blue-600" />
               </div>
@@ -150,7 +194,7 @@ export default function AdminProductsPage() {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Featured Products</p>
                   <p className="text-3xl font-bold text-gray-900">
-                    {products.filter((p: any) => p.isFeatured).length}
+                    {allProducts.filter((p: any) => p.isFeatured).length}
                   </p>
                 </div>
                 <Star className="h-8 w-8 text-yellow-600" />
@@ -230,21 +274,83 @@ export default function AdminProductsPage() {
               </Select>
             </div>
 
-            <div className="mt-4 flex items-center justify-between">
+            <div className="mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <p className="text-sm text-gray-600">
-                Showing {filteredProducts.length} of {products.length} products
+                Showing {filteredProducts.length} of {pagination.totalProducts} products
+                {pagination.totalPages > 1 && (
+                  <span className="ml-2">
+                    (Page {pagination.currentPage} of {pagination.totalPages})
+                  </span>
+                )}
               </p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setSearchTerm("")
-                  setCategoryFilter("all")
-                  setSeriesFilter("all")
-                }}
-              >
-                Clear Filters
-              </Button>
+              
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSearchTerm("")
+                    setCategoryFilter("all")
+                    setSeriesFilter("all")
+                  }}
+                >
+                  Clear Filters
+                </Button>
+                
+                {/* Pagination Controls */}
+                {pagination.totalPages > 1 && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={!pagination.hasPrevPage}
+                    >
+                      Previous
+                    </Button>
+                    
+                    <div className="flex items-center space-x-1">
+                      {Array.from({ length: Math.min(3, pagination.totalPages) }, (_, i) => {
+                        let pageNum;
+                        if (pagination.totalPages <= 3) {
+                          pageNum = i + 1;
+                        } else if (pagination.currentPage <= 2) {
+                          pageNum = i + 1;
+                        } else if (pagination.currentPage >= pagination.totalPages - 1) {
+                          pageNum = pagination.totalPages - 2 + i;
+                        } else {
+                          pageNum = pagination.currentPage - 1 + i;
+                        }
+                        
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant={pageNum === pagination.currentPage ? "default" : "outline"}
+                            size="sm"
+                            className={`w-8 h-8 p-0 ${
+                              pageNum === pagination.currentPage 
+                                ? 'bg-red-600 hover:bg-red-700' 
+                                : ''
+                            }`}
+                            onClick={() => setCurrentPage(pageNum)}
+                          >
+                            {pageNum}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.min(pagination.totalPages, prev + 1))}
+                      disabled={!pagination.hasNextPage}
+                    >
+                      Next
+                    </Button>
+                  </>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>

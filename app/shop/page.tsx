@@ -9,20 +9,53 @@ import { ProductCard } from "@/components/ui/product-card"
 
 export default function ShopPage() {
   const [products, setProducts] = useState([])
+  const [allProducts, setAllProducts] = useState([]) // For filters
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedClass, setSelectedClass] = useState("all")
   const [selectedSeries, setSelectedSeries] = useState("all")
   const [sortBy, setSortBy] = useState("name")
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalProducts: 0,
+    hasNextPage: false,
+    hasPrevPage: false,
+    limit: 16
+  })
 
+  // Fetch all products for filters
+  useEffect(() => {
+    async function fetchAllProducts() {
+      try {
+        const res = await fetch("/api/products?all=true")
+        const data = await res.json()
+        const normalized = data.map((p: any) => ({ ...p, image: p.imageUrl || p.image || "" }))
+        setAllProducts(normalized)
+      } catch (error) {
+        setAllProducts([])
+      }
+    }
+    fetchAllProducts()
+  }, [])
+
+  // Fetch paginated products
   useEffect(() => {
     async function fetchProducts() {
       setLoading(true)
       try {
-        const res = await fetch("/api/products")
+        const res = await fetch(`/api/products?page=${currentPage}&limit=16`)
         const data = await res.json()
-        const normalized = data.map((p: any) => ({ ...p, image: p.imageUrl || p.image || "" }))
-        setProducts(normalized)
+        if (data.products) {
+          const normalized = data.products.map((p: any) => ({ ...p, image: p.imageUrl || p.image || "" }))
+          setProducts(normalized)
+          setPagination(data.pagination)
+        } else {
+          // Fallback for old API response format
+          const normalized = data.map((p: any) => ({ ...p, image: p.imageUrl || p.image || "" }))
+          setProducts(normalized)
+        }
       } catch (error) {
         setProducts([])
       } finally {
@@ -30,11 +63,11 @@ export default function ShopPage() {
       }
     }
     fetchProducts()
-  }, [])
+  }, [currentPage])
 
-  // Get unique classes and series for filters
-  const classes = ["all", ...Array.from(new Set(products.map((p: any) => p.category)))]
-  const series = ["all", ...Array.from(new Set(products.map((p: any) => p.series)))]
+  // Get unique classes and series for filters (use all products)
+  const classes = ["all", ...Array.from(new Set(allProducts.map((p: any) => p.category)))]
+  const series = ["all", ...Array.from(new Set(allProducts.map((p: any) => p.series)))]
 
   // Filter and sort products
   const filteredProducts = useMemo(() => {
@@ -66,6 +99,11 @@ export default function ShopPage() {
 
     return filtered
   }, [products, searchTerm, selectedClass, selectedSeries, sortBy])
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm, selectedClass, selectedSeries, sortBy])
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -136,10 +174,69 @@ export default function ShopPage() {
         </div>
 
         {/* Results */}
-        <div className="mb-6">
+        <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <p className="text-gray-600">
-            Showing {filteredProducts.length} of {products.length} books
+            Showing {filteredProducts.length} of {pagination.totalProducts} books
+            {pagination.totalPages > 1 && (
+              <span className="ml-2 text-sm">
+                (Page {pagination.currentPage} of {pagination.totalPages})
+              </span>
+            )}
           </p>
+          
+          {/* Pagination Controls */}
+          {pagination.totalPages > 1 && (
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={!pagination.hasPrevPage}
+              >
+                Previous
+              </Button>
+              
+              <div className="flex items-center space-x-1">
+                {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (pagination.totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (pagination.currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (pagination.currentPage >= pagination.totalPages - 2) {
+                    pageNum = pagination.totalPages - 4 + i;
+                  } else {
+                    pageNum = pagination.currentPage - 2 + i;
+                  }
+                  
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={pageNum === pagination.currentPage ? "default" : "outline"}
+                      size="sm"
+                      className={`w-8 h-8 p-0 ${
+                        pageNum === pagination.currentPage 
+                          ? 'bg-red-600 hover:bg-red-700' 
+                          : ''
+                      }`}
+                      onClick={() => setCurrentPage(pageNum)}
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                })}
+              </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.min(pagination.totalPages, prev + 1))}
+                disabled={!pagination.hasNextPage}
+              >
+                Next
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Products Grid */}

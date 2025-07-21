@@ -239,7 +239,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     async function fetchProducts() {
       try {
-        const res = await fetch("/api/products");
+        const res = await fetch("/api/products?all=true");
         const data = await res.json();
         const normalized = data.map((p: any) => ({ ...p, image: p.imageUrl || p.image || "" }));
         dispatch({ type: "CLEAR_PRODUCTS" });

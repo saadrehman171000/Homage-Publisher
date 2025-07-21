@@ -54,19 +54,17 @@ export default function HomePage() {
     async function fetchProducts() {
       setLoading(true)
       try {
-        // Fetch featured products
-        const featuredRes = await fetch("/api/products?limit=8")
-        const featuredData = await featuredRes.json()
-        setFeaturedProducts(featuredData.filter((p: any) => p.isFeatured))
-        // Fetch new arrivals
-        const newArrivalsRes = await fetch("/api/products?limit=8")
-        const newArrivalsData = await newArrivalsRes.json()
-        setNewArrivals(newArrivalsData.filter((p: any) => p.isNewArrival))
+        // Fetch all products first
+        const res = await fetch("/api/products?all=true")
+        const data = await res.json()
+        // Filter featured products and new arrivals
+        setFeaturedProducts(data.filter((p: any) => p.isFeatured).slice(0, 8))
+        setNewArrivals(data.filter((p: any) => p.isNewArrival).slice(0, 8))
       } catch {
         setFeaturedProducts([])
         setNewArrivals([])
       } finally {
-    setLoading(false)
+        setLoading(false)
       }
     }
     fetchProducts()

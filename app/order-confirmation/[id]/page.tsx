@@ -116,8 +116,8 @@ export default function OrderConfirmationPage() {
                   <p className="text-blue-600 font-medium">{order.shippingPhone}</p>
                 </div>
               </div>
-            </div>
-            
+              </div>
+
             <div className="mt-6 bg-red-50 border border-red-200 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <span className="text-lg font-semibold text-gray-900">💰 Total Amount</span>

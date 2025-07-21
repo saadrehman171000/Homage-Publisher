@@ -43,7 +43,7 @@ export default function CategoryPage() {
     async function fetchProducts() {
       setLoading(true)
       try {
-        const res = await fetch("/api/products")
+        const res = await fetch("/api/products?all=true")
         const data = await res.json()
         const normalized = data.map((p: any) => ({ ...p, image: p.imageUrl || p.image || "" }))
         setProducts(normalized)
@@ -51,7 +51,7 @@ export default function CategoryPage() {
         setProducts([])
       } finally {
         setLoading(false)
-    }
+      }
     }
     fetchProducts()
   }, [categoryName])

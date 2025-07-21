@@ -20,7 +20,7 @@ export default function AdminNewArrivalsPage() {
     async function fetchProducts() {
       setLoading(true)
       try {
-        const res = await fetch("/api/products")
+        const res = await fetch("/api/products?all=true")
         const data = await res.json()
         const normalized = data.map((p: any) => ({ ...p, image: p.imageUrl || p.image || "" }))
         setProducts(normalized.filter((p: any) => p.isNewArrival))
