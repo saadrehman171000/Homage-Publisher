@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Minus, Plus, Trash2, ShoppingBag, AlertCircle, Info } from "lucide-react"
 import { useApp } from "@/contexts/app-context"
 
-const MINIMUM_ORDER_AMOUNT = 2000
+const MINIMUM_ORDER_AMOUNT = 1000
 
 export default function CartPage() {
   const { state, dispatch } = useApp()
@@ -20,8 +20,8 @@ export default function CartPage() {
   }
 
   const subtotal = state.cart.reduce((total, item) => {
-    const price = item.discount
-      ? item.price
+    const price = typeof item.discount === 'number'
+      ? item.price - (item.price * item.discount) / 100
       : item.price;
     return total + price * item.quantity;
   }, 0);
@@ -84,8 +84,8 @@ export default function CartPage() {
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4">
             {state.cart.map((item) => {
-              const discountedPrice = item.discount
-                ? item.price
+              const discountedPrice = typeof item.discount === 'number'
+                ? item.price - (item.price * item.discount) / 100
                 : item.price
 
               return (
@@ -111,7 +111,7 @@ export default function CartPage() {
                         <span className="text-lg font-bold text-red-600">Rs. {discountedPrice.toFixed(0)}</span>
                         {item.discount && (
                           <span className="text-sm text-gray-500 line-through">
-                            Rs. {/* If you want to show original price, store it in CartItem */}
+                            Rs. {item.price.toFixed(0)}
                           </span>
                         )}
                       </div>

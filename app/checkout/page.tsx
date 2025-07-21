@@ -48,7 +48,7 @@ const CITIES_DATA = {
   }
 }
 
-const MINIMUM_ORDER_AMOUNT = 2000
+const MINIMUM_ORDER_AMOUNT = 1000
 
 export default function CheckoutPage() {
   const { state, dispatch } = useApp()

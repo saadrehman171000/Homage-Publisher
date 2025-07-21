@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Validate minimum order amount
-  const MINIMUM_ORDER_AMOUNT = 2000;
+  const MINIMUM_ORDER_AMOUNT = 1000;
   if (data.subtotal < MINIMUM_ORDER_AMOUNT) {
     return NextResponse.json({ 
       error: `Minimum order amount is Rs. ${MINIMUM_ORDER_AMOUNT}. Current subtotal: Rs. ${data.subtotal}` 
