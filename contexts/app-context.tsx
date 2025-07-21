@@ -124,6 +124,7 @@ const initialState: AppState = {
 
 const ADMIN_EMAILS = [
   "saadrehman1710000@gmail.com",
+  "rehan6205@gmail.com",
   // Add more admin emails here as needed
 ];
 

@@ -3,7 +3,8 @@ import { PrismaClient, Order as PrismaOrder } from '@prisma/client';
 import { 
   sendOrderConfirmationEmail, 
   sendShippingNotificationEmail, 
-  sendDeliveryConfirmationEmail 
+  sendDeliveryConfirmationEmail,
+  sendNewOrderNotificationEmail
 } from '@/lib/sendOrderEmail';
 
 const prisma = new PrismaClient();
@@ -95,6 +96,16 @@ export async function POST(req: NextRequest) {
       shippingPostalCode: data.shippingPostalCode,
     },
   });
+
+  // Send admin notification email (don't wait for it to complete)
+  try {
+    console.log('Sending admin notification email for new order:', order.id);
+    await sendNewOrderNotificationEmail(order);
+    console.log('Admin notification email sent successfully');
+  } catch (error) {
+    console.error('Failed to send admin notification email:', error);
+    // Don't fail the order creation if email fails
+  }
   
   return NextResponse.json(order);
 }

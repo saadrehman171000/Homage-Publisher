@@ -155,7 +155,7 @@ export default function AdminDashboardPage() {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Revenue</p>
                   <p className="text-3xl font-bold text-gray-900">Rs. {totalRevenue.toLocaleString()}</p>
-                  <p className="text-sm text-green-600 mt-1">+12% from last month</p>
+                  <p className="text-sm text-gray-500 mt-1">From {totalOrders} orders</p>
                 </div>
                 <div className="p-3 bg-green-100 rounded-full">
                   <DollarSign className="h-8 w-8 text-green-600" />
@@ -185,7 +185,7 @@ export default function AdminDashboardPage() {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Products</p>
                   <p className="text-3xl font-bold text-gray-900">{totalProducts}</p>
-                  <p className="text-sm text-purple-600 mt-1">8 categories</p>
+                  <p className="text-sm text-gray-500 mt-1">Active products</p>
                 </div>
                 <div className="p-3 bg-purple-100 rounded-full">
                   <Package className="h-8 w-8 text-purple-600" />
@@ -200,7 +200,7 @@ export default function AdminDashboardPage() {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Avg Order Value</p>
                   <p className="text-3xl font-bold text-gray-900">Rs. {avgOrderValue.toFixed(0)}</p>
-                  <p className="text-sm text-orange-600 mt-1">+5% from last week</p>
+                  <p className="text-sm text-gray-500 mt-1">Per order average</p>
                 </div>
                 <div className="p-3 bg-orange-100 rounded-full">
                   <TrendingUp className="h-8 w-8 text-orange-600" />

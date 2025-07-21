@@ -486,6 +486,204 @@ We look forward to serving you again!
   }
 }
 
+export async function sendNewOrderNotificationEmail(order: any) {
+  if (!process.env.RESEND_API_KEY) {
+    console.error("RESEND_API_KEY not configured. Please add it to your .env file.");
+    return;
+  }
+
+  const emailHtml = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>New Order Received - Homage Publishers</title>
+      <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
+        .container { max-width: 650px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e0e0e0; }
+        .header { background-color: #ffffff; padding: 30px; text-align: center; border-bottom: 2px solid #dc2626; }
+        .logo { max-width: 180px; height: auto; margin-bottom: 15px; }
+        .header h1 { color: #2c3e50; margin: 0; font-size: 24px; font-weight: 600; }
+        .header p { color: #7f8c8d; margin: 5px 0 0 0; font-size: 14px; }
+        .content { padding: 30px; }
+        .order-section { background-color: #fafafa; border: 1px solid #e0e0e0; padding: 20px; margin: 20px 0; }
+        .section-title { color: #2c3e50; font-size: 16px; font-weight: 600; margin: 0 0 15px 0; border-bottom: 1px solid #e0e0e0; padding-bottom: 8px; }
+        .order-row { margin-bottom: 12px; display: flex; }
+        .order-label { font-weight: 600; color: #34495e; width: 140px; font-size: 14px; }
+        .order-value { color: #2c3e50; font-size: 14px; flex: 1; }
+        .items-table { width: 100%; border-collapse: collapse; margin: 15px 0; border: 1px solid #e0e0e0; }
+        .items-table th { background-color: #f8f9fa; padding: 12px; text-align: left; border-bottom: 1px solid #e0e0e0; font-weight: 600; color: #2c3e50; }
+        .items-table td { padding: 12px; border-bottom: 1px solid #e0e0e0; color: #2c3e50; }
+        .total-box { background-color: #2c3e50; color: white; padding: 20px; text-align: center; margin: 20px 0; }
+        .footer { background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #e0e0e0; color: #7f8c8d; font-size: 12px; }
+        .alert-box { background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; margin: 20px 0; border-radius: 4px; }
+        .alert-text { color: #856404; font-weight: 500; font-size: 14px; margin: 0; }
+        .action-box { background-color: #e8f4fd; border: 1px solid #b3d4fc; padding: 20px; margin: 20px 0; border-radius: 4px; }
+        .action-title { color: #0c5460; font-weight: 600; margin: 0 0 10px 0; }
+        .action-list { color: #0c5460; margin: 0; padding-left: 20px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <!-- Header -->
+        <div class="header">
+          <img src="https://homage-publishers.vercel.app/images/homage-logo-01.png" alt="Homage Educational Publishers" class="logo">
+          <h1>New Order Notification</h1>
+          <p>Order #${order.id.slice(-6)} received at ${new Date(order.createdAt).toLocaleString('en-US', { 
+            timeZone: 'Asia/Karachi',
+            year: 'numeric',
+            month: 'short', 
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })} PKT</p>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+          <!-- Alert Box -->
+          <div class="alert-box">
+            <p class="alert-text">ACTION REQUIRED: New order requires processing and customer contact within 24 hours.</p>
+          </div>
+
+          <!-- Customer Information -->
+          <div class="order-section">
+            <h3 class="section-title">Customer Information</h3>
+            
+            <div class="order-row">
+              <span class="order-label">Customer Name:</span>
+              <span class="order-value">${order.shippingName}</span>
+            </div>
+
+            <div class="order-row">
+              <span class="order-label">Email Address:</span>
+              <span class="order-value">
+                <a href="mailto:${order.shippingEmail}" style="color: #3498db; text-decoration: underline;">${order.shippingEmail}</a>
+              </span>
+            </div>
+
+            <div class="order-row">
+              <span class="order-label">Phone Number:</span>
+              <span class="order-value">
+                <a href="tel:${order.shippingPhone}" style="color: #3498db; text-decoration: underline;">${order.shippingPhone}</a>
+              </span>
+            </div>
+
+            <div class="order-row">
+              <span class="order-label">Delivery Address:</span>
+              <span class="order-value">
+                ${order.shippingAddress}<br>
+                ${order.shippingCity}, ${order.shippingPostalCode}
+              </span>
+            </div>
+          </div>
+
+          <!-- Order Details -->
+          <div class="order-section">
+            <h3 class="section-title">Order Information</h3>
+            
+            <div class="order-row">
+              <span class="order-label">Order ID:</span>
+              <span class="order-value">#${order.id.slice(-6)}</span>
+            </div>
+
+            <div class="order-row">
+              <span class="order-label">Payment Method:</span>
+              <span class="order-value">Cash on Delivery (COD)</span>
+            </div>
+
+            <div class="order-row">
+              <span class="order-label">Current Status:</span>
+              <span class="order-value">${order.status}</span>
+            </div>
+          </div>
+
+          <!-- Order Items -->
+          <div class="order-section">
+            <h3 class="section-title">Ordered Items</h3>
+            
+            <table class="items-table">
+              <thead>
+                <tr>
+                  <th>Book Title</th>
+                  <th style="text-align: center;">Qty</th>
+                  <th style="text-align: right;">Unit Price</th>
+                  <th style="text-align: right;">Line Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${order.items.map((item: any) => `
+                  <tr>
+                    <td>${item.title}</td>
+                    <td style="text-align: center;">${item.quantity}</td>
+                    <td style="text-align: right;">Rs. ${item.price}${item.discount ? ` (${item.discount}% OFF)` : ''}</td>
+                    <td style="text-align: right;"><strong>Rs. ${(item.quantity * item.price * (1 - (item.discount || 0) / 100)).toFixed(0)}</strong></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Order Total -->
+          <div class="total-box">
+            <div style="font-size: 14px; margin-bottom: 5px;">TOTAL ORDER AMOUNT</div>
+            <div style="font-size: 28px; font-weight: 700;">Rs. ${order.total.toFixed(0)}</div>
+          </div>
+
+          <!-- Next Actions -->
+          <div class="action-box">
+            <h4 class="action-title">Required Actions:</h4>
+            <ul class="action-list">
+              <li>Contact customer at ${order.shippingPhone} within 24 hours</li>
+              <li>Confirm order details and delivery address</li>
+              <li>Update order status in admin panel</li>
+              <li>Prepare books for shipping</li>
+              <li>Send order confirmation email to customer</li>
+            </ul>
+          </div>
+
+          <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
+            This email was automatically generated when a new order was placed on your website.
+            <br><strong>Please process this order promptly to maintain customer satisfaction.</strong>
+          </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+          <p><strong>Homage Educational Publishers</strong><br>
+          Admin Panel: <a href="https://homage-publishers.vercel.app/admin/orders" style="color: #3498db;">View All Orders</a><br>
+          Phone: +92-21-3277-8692 | Email: info@homagepublishers.com</p>
+          <p style="margin-top: 15px;">This email was automatically generated when a new order was placed.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  try {
+    console.log('Sending new order notification email to admin');
+    
+    const { data, error } = await resend.emails.send({
+      from: 'New Order <orders@homagepublishers.com>',
+      to: ['info@homagepublishers.com'],
+      subject: `🎉 New Order #${order.id.slice(-6)} - Rs. ${order.total.toFixed(0)} - ${order.shippingName}`,
+      html: emailHtml,
+    });
+
+    if (error) {
+      console.error('Resend error:', error);
+      throw new Error(`Failed to send admin notification email: ${error.message}`);
+    }
+
+    console.log('Admin notification email sent successfully:', data?.id);
+    return { success: true, id: data?.id };
+  } catch (error) {
+    console.error('Error sending admin notification email:', error);
+    throw error;
+  }
+}
+
 export async function sendContactFormEmail(formData: {
   name: string;
   email: string;
