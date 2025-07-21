@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 const ADMIN_EMAILS = [
   "saadrehman1710000@gmail.com",
   "contact@homagepublishers.com",
+  "rehan6205@gmail.com",
 ];
 
 interface AdminLayoutProps {
