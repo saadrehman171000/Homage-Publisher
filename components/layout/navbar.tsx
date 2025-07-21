@@ -176,10 +176,11 @@ export function Navbar() {
               {state.user ? (
                 <Link
                   href="/admin/dashboard"
-                  className="flex items-center text-gray-700 hover:text-red-600 transition-all duration-300 px-3 py-2 rounded-lg hover:bg-red-50 h-10"
+                  className="flex items-center text-gray-700 hover:text-red-600 transition-all duration-300 px-3 py-2 rounded-lg hover:bg-red-50 h-10 max-w-[150px]"
+                  title={state.user.name} // Show full name on hover
                 >
-                  <User className="h-5 w-5 mr-1" />
-                  <span className="font-medium">{state.user.name}</span>
+                  <User className="h-5 w-5 mr-1 flex-shrink-0" />
+                  <span className="font-medium truncate">{state.user.name}</span>
                 </Link>
               ) : (
                 <Link
@@ -329,13 +330,18 @@ export function Navbar() {
               {/* Mobile User Menu */}
               <div className="border-t border-gray-200 pt-2">
                 {state.user ? (
-                  <Link
-                    href="/admin/dashboard"
-                    className="block px-4 py-3 text-gray-700 hover:text-red-600 hover:bg-red-50 font-medium rounded-lg transition-all duration-200"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Admin Dashboard
-                  </Link>
+                  <div className="px-4 space-y-1">
+                    <div className="py-2 text-sm text-gray-500 truncate">
+                      Welcome, {state.user.name}
+                    </div>
+                    <Link
+                      href="/admin/dashboard"
+                      className="block px-4 py-3 text-gray-700 hover:text-red-600 hover:bg-red-50 font-medium rounded-lg transition-all duration-200"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Admin Dashboard
+                    </Link>
+                  </div>
                 ) : (
                   <Link
                     href="/sign-in"

@@ -256,11 +256,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Sync Clerk user with app context
   useEffect(() => {
     if (isLoaded && user) {
+      // Better fallback logic for user name to prevent long IDs in navbar
+      const getUserName = () => {
+        if (user.fullName) return user.fullName;
+        if (user.username) return user.username;
+        if (user.firstName && user.lastName) return `${user.firstName} ${user.lastName}`;
+        if (user.firstName) return user.firstName;
+        if (user.primaryEmailAddress?.emailAddress) {
+          // Extract name part from email as last resort
+          return user.primaryEmailAddress.emailAddress.split('@')[0];
+        }
+        return "User"; // Safe fallback instead of showing user ID
+      };
+
       dispatch({
         type: "SET_USER",
         payload: {
           id: user.id,
-          name: user.fullName || user.username || user.id,
+          name: getUserName(),
           email: user.primaryEmailAddress?.emailAddress || "",
           isAdmin: ADMIN_EMAILS.includes(user.primaryEmailAddress?.emailAddress || ""),
         },

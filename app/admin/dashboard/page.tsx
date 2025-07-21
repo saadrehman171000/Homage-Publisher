@@ -37,11 +37,24 @@ export default function AdminDashboardPage() {
   const [orders, setOrders] = useState([])
   const [loadingOrders, setLoadingOrders] = useState(true)
 
+  // Enhanced admin protection
   useEffect(() => {
     if (!state.user || !state.user.isAdmin) {
-      router.push("/admin/login")
+      router.push("/not-authorized")
     }
   }, [state.user, router])
+
+  // Don't render anything until we verify admin status
+  if (!state.user || !state.user.isAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Checking authorization...</p>
+        </div>
+      </div>
+    )
+  }
 
   useEffect(() => {
     async function fetchProducts() {
@@ -75,9 +88,7 @@ export default function AdminDashboardPage() {
     fetchOrders()
   }, [])
 
-  if (!state.user || !state.user.isAdmin) {
-    return null
-  }
+
 
   // Calculate statistics
   const totalProducts = products.length
