@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect } from "react"
 import { Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -9,7 +9,7 @@ import { ProductCard } from "@/components/ui/product-card"
 
 export default function ShopPage() {
   const [products, setProducts] = useState([])
-  const [allProducts, setAllProducts] = useState([]) // For filters
+  const [allProducts, setAllProducts] = useState([]) // For filter options only
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedClass, setSelectedClass] = useState("all")
@@ -25,7 +25,7 @@ export default function ShopPage() {
     limit: 16
   })
 
-  // Fetch all products for filters
+  // Fetch all products for filter options (dropdown lists)
   useEffect(() => {
     async function fetchAllProducts() {
       try {
@@ -40,13 +40,36 @@ export default function ShopPage() {
     fetchAllProducts()
   }, [])
 
-  // Fetch paginated products
+  // Fetch filtered and paginated products from server
   useEffect(() => {
     async function fetchProducts() {
       setLoading(true)
       try {
-        const res = await fetch(`/api/products?page=${currentPage}&limit=16`)
+        // Build query parameters for server-side filtering
+        const params = new URLSearchParams({
+          page: currentPage.toString(),
+          limit: '16'
+        })
+        
+        if (searchTerm.trim()) {
+          params.append('search', searchTerm.trim())
+        }
+        
+        if (selectedClass !== 'all') {
+          params.append('category', selectedClass)
+        }
+        
+        if (selectedSeries !== 'all') {
+          params.append('series', selectedSeries)
+        }
+        
+        if (sortBy) {
+          params.append('sort', sortBy)
+        }
+
+        const res = await fetch(`/api/products?${params.toString()}`)
         const data = await res.json()
+        
         if (data.products) {
           const normalized = data.products.map((p: any) => ({ ...p, image: p.imageUrl || p.image || "" }))
           setProducts(normalized)
@@ -63,42 +86,11 @@ export default function ShopPage() {
       }
     }
     fetchProducts()
-  }, [currentPage])
+  }, [currentPage, searchTerm, selectedClass, selectedSeries, sortBy])
 
-  // Get unique classes and series for filters (use all products)
+  // Get unique classes and series for filter dropdowns
   const classes = ["all", ...Array.from(new Set(allProducts.map((p: any) => p.category)))]
   const series = ["all", ...Array.from(new Set(allProducts.map((p: any) => p.series)))]
-
-  // Filter and sort products
-  const filteredProducts = useMemo(() => {
-    const filtered = products.filter((product: any) => {
-      const matchesSearch =
-        product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchTerm.toLowerCase())
-      const matchesClass = selectedClass === "all" || product.category === selectedClass
-      const matchesSeries = selectedSeries === "all" || product.series === selectedSeries
-
-      return matchesSearch && matchesClass && matchesSeries
-    })
-
-    // Sort products
-    filtered.sort((a: any, b: any) => {
-      switch (sortBy) {
-        case "name":
-          return a.title.localeCompare(b.title)
-        case "price-low":
-          return a.price - b.price
-        case "price-high":
-          return b.price - a.price
-        case "class":
-          return a.category.localeCompare(b.category)
-        default:
-          return 0
-      }
-    })
-
-    return filtered
-  }, [products, searchTerm, selectedClass, selectedSeries, sortBy])
 
   // Reset to page 1 when filters change
   useEffect(() => {
@@ -176,7 +168,7 @@ export default function ShopPage() {
         {/* Results */}
         <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <p className="text-gray-600">
-            Showing {filteredProducts.length} of {pagination.totalProducts} books
+            Showing {products.length} of {pagination.totalProducts} books
             {pagination.totalPages > 1 && (
               <span className="ml-2 text-sm">
                 (Page {pagination.currentPage} of {pagination.totalPages})
@@ -242,9 +234,9 @@ export default function ShopPage() {
         {/* Products Grid */}
         {loading ? (
           <div className="text-center py-12 text-gray-500">Loading books...</div>
-        ) : filteredProducts.length > 0 ? (
+        ) : products.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredProducts.map((product: any) => (
+            {products.map((product: any) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
@@ -256,6 +248,7 @@ export default function ShopPage() {
                 setSearchTerm("")
                 setSelectedClass("all")
                 setSelectedSeries("all")
+                setSortBy("name")
               }}
               variant="outline"
               className="mt-4"

@@ -45,13 +45,36 @@ export default function AdminProductsPage() {
     fetchAllProducts()
   }, [])
 
-  // Fetch paginated products
+  // Fetch filtered and paginated products from server
   useEffect(() => {
     async function fetchProducts() {
       setLoading(true)
       try {
-        const res = await fetch(`/api/products?page=${currentPage}&limit=16`)
+        // Build query parameters for server-side filtering
+        const params = new URLSearchParams({
+          page: currentPage.toString(),
+          limit: '16'
+        })
+        
+        if (searchTerm.trim()) {
+          params.append('search', searchTerm.trim())
+        }
+        
+        if (categoryFilter !== 'all') {
+          params.append('category', categoryFilter)
+        }
+        
+        if (seriesFilter !== 'all') {
+          params.append('series', seriesFilter)
+        }
+        
+        if (sortBy) {
+          params.append('sort', sortBy)
+        }
+
+        const res = await fetch(`/api/products?${params.toString()}`)
         const data = await res.json()
+        
         if (data.products) {
           const normalized = data.products.map((p: any) => ({ ...p, image: p.imageUrl || p.image || "" }))
           setProducts(normalized)
@@ -68,36 +91,11 @@ export default function AdminProductsPage() {
       }
     }
     fetchProducts()
-  }, [currentPage])
+  }, [currentPage, searchTerm, categoryFilter, seriesFilter, sortBy])
 
-  // Get unique categories and series (use all products)
+  // Get unique categories and series for filter dropdowns
   const categories = ["all", ...Array.from(new Set(allProducts.map((p: any) => p.category)))]
   const series = ["all", ...Array.from(new Set(allProducts.map((p: any) => p.series)))]
-
-  // Filter and sort products
-  const filteredProducts = products
-    .filter((product: any) => {
-      const matchesSearch =
-        product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchTerm.toLowerCase())
-      const matchesCategory = categoryFilter === "all" || product.category === categoryFilter
-      const matchesSeries = seriesFilter === "all" || product.series === seriesFilter
-      return matchesSearch && matchesCategory && matchesSeries
-    })
-    .sort((a: any, b: any) => {
-      switch (sortBy) {
-        case "name":
-          return a.title.localeCompare(b.title)
-        case "price-low":
-          return a.price - b.price
-        case "price-high":
-          return b.price - a.price
-        case "category":
-          return a.category.localeCompare(b.category)
-        default:
-          return 0
-      }
-    })
 
   // Reset to page 1 when filters change
   useEffect(() => {
@@ -276,7 +274,7 @@ export default function AdminProductsPage() {
 
             <div className="mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <p className="text-sm text-gray-600">
-                Showing {filteredProducts.length} of {pagination.totalProducts} products
+                Showing {products.length} of {pagination.totalProducts} products
                 {pagination.totalPages > 1 && (
                   <span className="ml-2">
                     (Page {pagination.currentPage} of {pagination.totalPages})
@@ -285,17 +283,18 @@ export default function AdminProductsPage() {
               </p>
               
               <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setSearchTerm("")
-                    setCategoryFilter("all")
-                    setSeriesFilter("all")
-                  }}
-                >
-                  Clear Filters
-                </Button>
+                                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSearchTerm("")
+                      setCategoryFilter("all")
+                      setSeriesFilter("all")
+                      setSortBy("name")
+                    }}
+                  >
+                    Clear Filters
+                  </Button>
                 
                 {/* Pagination Controls */}
                 {pagination.totalPages > 1 && (
@@ -360,7 +359,7 @@ export default function AdminProductsPage() {
           <div className="text-center py-12 text-gray-500">Loading products...</div>
         ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredProducts.map((product: any) => (
+            {products.map((product: any) => (
             <Card key={product.id} className="hover:shadow-lg transition-shadow">
               <CardContent className="p-0">
                 <div className="relative overflow-hidden">
