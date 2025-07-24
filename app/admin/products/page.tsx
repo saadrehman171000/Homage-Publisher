@@ -457,7 +457,7 @@ export default function AdminProductsPage() {
         </div>
         )}
 
-        {filteredProducts.length === 0 && !loading && (
+        {products.length === 0 && !loading && (
           <Card className="text-center py-12">
             <CardContent>
               <Package className="mx-auto h-12 w-12 text-gray-300 mb-4" />
