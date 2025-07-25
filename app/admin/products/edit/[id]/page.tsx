@@ -80,8 +80,13 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     "Early Learners",
     "Pre-Primary",
     "Primary Series",
+    "Fun Time",
+    "Rhymes",
     "Foundation Series",
     "Advanced Series",
+    "Easy Write",
+    "Towards",
+    "Arts Fun",
     "Other",
   ]
 

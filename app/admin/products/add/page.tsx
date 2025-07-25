@@ -76,8 +76,13 @@ export default function AddProductPage() {
     "Early Learners",
     "Pre-Primary",
     "Primary Series",
+    "Fun Time",
+    "Rhymes",
     "Foundation Series",
     "Advanced Series",
+    "Easy Write",
+    "Towards",
+    "Arts Fun",
     "Other",
   ]
 
