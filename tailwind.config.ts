@@ -76,6 +76,12 @@ const config: Config = {
         "fade-in": "fadeIn 0.5s ease-in-out",
         "slide-up": "slideUp 0.5s ease-out",
         "bounce-slow": "bounce 2s infinite",
+        "scale-in": "scaleIn 0.8s ease-out",
+        "slide-up-delayed": "slideUp 0.8s ease-out 0.3s both",
+        "fade-in-delayed": "fadeIn 0.8s ease-out 0.7s both",
+        "float-1": "float1 3s ease-in-out infinite",
+        "float-2": "float2 2.5s ease-in-out infinite 1s",
+        "float-3": "float3 2s ease-in-out infinite 0.5s",
       },
       keyframes: {
         fadeIn: {
@@ -85,6 +91,22 @@ const config: Config = {
         slideUp: {
           "0%": { transform: "translateY(20px)", opacity: "0" },
           "100%": { transform: "translateY(0)", opacity: "1" },
+        },
+        scaleIn: {
+          "0%": { transform: "scale(0.8)", opacity: "0" },
+          "100%": { transform: "scale(1)", opacity: "1" },
+        },
+        float1: {
+          "0%, 100%": { transform: "translateY(0)", opacity: "0.3" },
+          "50%": { transform: "translateY(-20px)", opacity: "0.6" },
+        },
+        float2: {
+          "0%, 100%": { transform: "translateY(0)", opacity: "0.3" },
+          "50%": { transform: "translateY(20px)", opacity: "0.6" },
+        },
+        float3: {
+          "0%, 100%": { transform: "translateX(0)", opacity: "0.3" },
+          "50%": { transform: "translateX(15px)", opacity: "0.6" },
         },
       },
     },

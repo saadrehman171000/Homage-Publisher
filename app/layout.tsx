@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { AppProvider } from "@/contexts/app-context"
+import { LoaderProvider } from "@/contexts/loader-context"
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
 import { ClerkProvider, useUser } from "@clerk/nextjs";
@@ -49,11 +50,13 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <ClerkProvider>
+        <LoaderProvider>
         <AppProvider>
           <Navbar />
           <main>{children}</main>
           <Footer />
         </AppProvider>
+        </LoaderProvider>
         </ClerkProvider>
       </body>
     </html>
